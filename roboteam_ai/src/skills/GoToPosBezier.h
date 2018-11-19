@@ -7,7 +7,7 @@
 
 #include "Skill.h"
 #include "roboteam_utils/Vector2.h"
-#include "../utilities/pathFinder/PathFinder.h"
+#include "../control/pathFinder/PathFinder.h"
 
 namespace rtt {
 namespace ai {

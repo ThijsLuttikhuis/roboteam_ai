@@ -55,7 +55,10 @@ void GoToPosBezier::Initialize() {
     /// Create robot coordinates vector & other parameters for the path
     // TODO: don't hardcode end orientation & velocity
     float endAngle = (float) M_PI;
-    Vector2 endVelocity(0, 0);
+    float endVelocity = 0;
+    Vector2 robotVel = robot.vel;
+    float startVelocity = (float)robotVel.length();
+
 
     auto world = World::get_world();
     std::vector<Vector2> robotCoordinates;
@@ -67,7 +70,7 @@ void GoToPosBezier::Initialize() {
     }
 
     PathFinder pathFinder;
-    pathFinder.calculatePath(targetPos, robot.pos, endAngle, robot.angle, endVelocity, robotCoordinates);
+    pathFinder.calculatePath(targetPos, robot.pos, endAngle, robot.angle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
     curve.positions = pathFinder.getCurvePoints();
