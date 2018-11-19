@@ -71,6 +71,9 @@ bt::Node::Ptr Switches::leafSwitch(std::string name, bt::Blackboard::Ptr propert
     else if (name == "Rotate") {
         node = std::make_shared<rtt::ai::Rotate>(name, properties);
     }
+    else if (name == "GoToPosBezier") {
+        node = std::make_shared<rtt::ai::GoToPosBezier>(name, properties);
+    }
     else {
         node = std::make_shared<rtt::ai::GoToPos>(name, properties);
     }

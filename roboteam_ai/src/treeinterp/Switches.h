@@ -3,6 +3,7 @@
 //
 #include "BTImport.h"
 #include "../skills/GoToPos.h"
+#include "../skills/GoToPosBezier.h"
 #include "../skills/Kick.h"
 
 #ifndef ROBOTEAM_AI_SWITCHES_H
