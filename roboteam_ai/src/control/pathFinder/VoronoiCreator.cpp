@@ -7,7 +7,7 @@
 #include "VoronoiCreator.h"
 
 namespace rtt{
-namespace testsuite{
+namespace ai{
 
 VoronoiCreator::VoronoiCreator() {
 
@@ -561,5 +561,5 @@ arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCente
 }
 
 
-} // testsuite
+} // ai
 } // rtt

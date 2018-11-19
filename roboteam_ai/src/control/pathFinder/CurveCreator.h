@@ -2,16 +2,16 @@
 // Created by simen on 06/11/18.
 //
 
-#ifndef ROBOTEAM_TESTSUITE_CURVECREATOR_H
-#define ROBOTEAM_TESTSUITE_CURVECREATOR_H
+#ifndef ROBOTEAM_ai_CURVECREATOR_H
+#define ROBOTEAM_ai_CURVECREATOR_H
 
 #include <vector>
 #include <roboteam_utils/Vector2.h>
 #include "armadillo"
-#include "../utilities/World.h"
+#include "../../utilities/World.h"
 
 namespace rtt {
-    namespace testsuite {
+    namespace ai {
         class CurveCreator {
         private:
             // Variables
@@ -52,7 +52,7 @@ namespace rtt {
             const std::vector<float> &getCurveOrientations() const;
         };
 
-    } // testsuite
+    } // ai
 } // rtt
 
-#endif //ROBOTEAM_TESTSUITE_CURVECREATOR_H
+#endif //ROBOTEAM_ai_CURVECREATOR_H

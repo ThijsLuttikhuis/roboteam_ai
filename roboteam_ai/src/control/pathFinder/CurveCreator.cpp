@@ -5,7 +5,7 @@
 #include "CurveCreator.h"
 
 namespace rtt {
-namespace testsuite {
+namespace ai {
 CurveCreator::CurveCreator() {
     this->numPoints = 1000;
 }
@@ -338,7 +338,7 @@ const std::vector<Vector2> &CurveCreator::getCurveVelocities() const {
 const std::vector<float> &CurveCreator::getCurveOrientations() const {
     return curveOrientations;
 }
-} // testsuite
+} // ai
 } // rtt
 
 

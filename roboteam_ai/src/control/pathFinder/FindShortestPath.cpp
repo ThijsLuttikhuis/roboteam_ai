@@ -5,12 +5,12 @@
 #include "FindShortestPath.h"
 
 namespace rtt {
-    namespace testsuite {
-        rtt::testsuite::FindShortestPath::FindShortestPath() {
+    namespace ai {
+        rtt::ai::FindShortestPath::FindShortestPath() {
 
         }
 
-        std::vector<rtt::Vector2> rtt::testsuite::FindShortestPath::calculateShortestPath(const arma::Mat<float> &voronoiNodes,
+        std::vector<rtt::Vector2> rtt::ai::FindShortestPath::calculateShortestPath(const arma::Mat<float> &voronoiNodes,
                                                                                           const arma::Mat<int> &voronoiSegments,
                                                                                           const int startID, const int endID,
                                                                                           const std::vector<rtt::Vector2> robotCoordinates,
@@ -142,7 +142,7 @@ namespace rtt {
             return path;
         }
 
-        float rtt::testsuite::FindShortestPath::calculateWeight(const arma::Mat<int> &voronoiSegments,
+        float rtt::ai::FindShortestPath::calculateWeight(const arma::Mat<int> &voronoiSegments,
                                                                 const float startOrientation, const float endOrientation,
                                                                 const std::vector<rtt::Vector2> robotCoordinates, const int startID,
                                                                 const int endID, const int childID, const int parentID) {

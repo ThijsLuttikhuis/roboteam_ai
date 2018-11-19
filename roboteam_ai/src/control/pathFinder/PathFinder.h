@@ -2,19 +2,19 @@
 // Created by selina on 10/31/18.
 //
 
-#ifndef ROBOTEAM_TESTSUITE_PATHFINDER_H
-#define ROBOTEAM_TESTSUITE_PATHFINDER_H
+#ifndef ROBOTEAM_ai_PATHFINDER_H
+#define ROBOTEAM_ai_PATHFINDER_H
 
 
 #include <vector>
 #include <roboteam_utils/Vector2.h>
-#include "../utilities/World.h"
+#include "../../utilities/World.h"
 #include "VoronoiCreator.h"
 #include "FindShortestPath.h"
 #include "CurveCreator.h"
 
 namespace rtt{
-    namespace testsuite{
+    namespace ai{
         class PathFinder {
         public:
             PathFinder();
@@ -35,4 +35,4 @@ namespace rtt{
 
 
 
-#endif //ROBOTEAM_TESTSUITE_PATHFINDER_H
+#endif //ROBOTEAM_ai_PATHFINDER_H

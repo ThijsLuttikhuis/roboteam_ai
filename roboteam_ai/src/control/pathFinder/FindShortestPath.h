@@ -2,15 +2,15 @@
 // Created by simen on 30/10/18.
 //
 
-#ifndef ROBOTEAM_TESTSUITE_FINDSHORTESTPATH_H
-#define ROBOTEAM_TESTSUITE_FINDSHORTESTPATH_H
+#ifndef ROBOTEAM_ai_FINDSHORTESTPATH_H
+#define ROBOTEAM_ai_FINDSHORTESTPATH_H
 
 #include "roboteam_msgs/World.h"
 #include <armadillo>
 #include <roboteam_utils/Vector2.h>
 
 namespace rtt {
-    namespace testsuite {
+    namespace ai {
         class FindShortestPath {
             private:
                 // Types
@@ -45,7 +45,7 @@ namespace rtt {
                 std::vector<rtt::Vector2> calculateShortestPath(const arma::Mat<float> &voronoiNodes, const arma::Mat<int> &voronoiSegments, int startID, int endID, std::vector<rtt::Vector2> robotCoordinates, float startOrientation, float endOrientation);
 
         };
-    } // testsuite
+    } // ai
 } // rtt
 
-#endif //ROBOTEAM_TESTSUITE_FINDSHORTESTPATH_H
+#endif //ROBOTEAM_ai_FINDSHORTESTPATH_H

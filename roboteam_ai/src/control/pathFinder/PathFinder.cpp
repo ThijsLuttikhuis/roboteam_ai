@@ -9,7 +9,7 @@
 // TODO - Generate end position
 
 namespace rtt{
-    namespace testsuite{
+    namespace ai{
         PathFinder::PathFinder() {
 
         }

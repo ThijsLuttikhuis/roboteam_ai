@@ -2,18 +2,18 @@
 // Created by selina on 10/30/18.
 //
 
-#ifndef ROBOTEAM_TESTSUITE_VORONOICREATOR_H
-#define ROBOTEAM_TESTSUITE_VORONOICREATOR_H
+#ifndef ROBOTEAM_ai_VORONOICREATOR_H
+#define ROBOTEAM_ai_VORONOICREATOR_H
 
 #include "roboteam_msgs/World.h"
 #include <roboteam_msgs/GeometryData.h>
 #include <armadillo>
 #include "roboteam_utils/Vector2.h"
 #include <cfloat>
-#include "../utilities/Field.h"
+#include "../../utilities/Field.h"
 
 namespace rtt{
-    namespace testsuite{
+    namespace ai{
         class VoronoiCreator{
         private:
             // Functions
@@ -67,5 +67,5 @@ namespace rtt{
     }
 }
 
-#endif //ROBOTEAM_TESTSUITE_VORONOICREATOR_H
+#endif //ROBOTEAM_ai_VORONOICREATOR_H
 
