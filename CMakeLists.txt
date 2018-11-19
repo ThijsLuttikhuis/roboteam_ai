@@ -134,6 +134,8 @@ set(SKILLS_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/Rotate.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPos.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPos.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPosBezier.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPosBezier.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/TurnGeneva.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/TurnGeneva.cpp
         )
@@ -167,7 +169,15 @@ set(CONDITION_TESTS
 
 set(CONTROL_SOURCES
         roboteam_ai/src/control/ControlUtils.cpp
-        roboteam_ai/src/control/ControlUtils.h)
+        roboteam_ai/src/control/ControlUtils.h
+        roboteam_ai/src/control/pathFinder/CurveCreator.h
+        roboteam_ai/src/control/pathFinder/CurveCreator.cpp
+        roboteam_ai/src/control/pathFinder/FindShortestPath.h
+        roboteam_ai/src/control/pathFinder/FindShortestPath.cpp
+        roboteam_ai/src/control/pathFinder/PathFinder.cpp
+        roboteam_ai/src/control/pathFinder/PathFinder.h
+        roboteam_ai/src/control/pathFinder/VoronoiCreator.cpp
+        roboteam_ai/src/control/pathFinder/VoronoiCreator.h)
 
 ### TEST SOURCES END ###
 
