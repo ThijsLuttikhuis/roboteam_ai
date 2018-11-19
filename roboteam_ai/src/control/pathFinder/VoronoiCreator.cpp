@@ -56,7 +56,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     arma::Mat<float> indexCenters = arma::conv_to<arma::Mat<float>>::from(temp);
     circleCenters.insert_cols(0, indexCenters);
 
-    std::cout << "Circle centers: \n" << circleCenters << std::endl;
     // Find triangles that share a side
     // First = triangles, second = centers
     std::pair<arma::Mat<int>, arma::Mat<int>> adjacent = findAdjacentCenter(triangleCombinations);
@@ -333,7 +332,6 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
                 arma::Mat<int> tempRow(1,2); // Make row with first and next triangle so they can be inserted
                 tempRow(0,0) = firstTriangle; tempRow(0,1) = nextTriangle;
                 adjacentCenters.insert_rows(p, tempRow);
-                std::cout << tempRow << std::endl;
                 p++;
             }
         }

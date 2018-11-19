@@ -74,12 +74,6 @@ namespace rtt{
             curvePoints = curveCreator.getCurvePositions();
             velocities = curveCreator.getCurveVelocities();
             angles = curveCreator.getCurveOrientations();
-
-            // Show result
-            std::cout << "Path: ";
-            for (int i=0; i<path.size(); i++) {
-                std::cout << path[i] << " -> ";
-            }
         }
 
         std::vector<Vector2> PathFinder::getCurvePoints() {

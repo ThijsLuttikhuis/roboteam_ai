@@ -26,11 +26,6 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
         calculateAcceleration();
         calculateOrientation();
     }
-
-    std::cout << "Control points:" << std::endl;
-    for (Vector2 &vec: controlPoints) {
-        std::cout << vec << std::endl;
-    }
 }
 
 void CurveCreator::createCurvePiece(std::vector<Vector2> pathPiece,
