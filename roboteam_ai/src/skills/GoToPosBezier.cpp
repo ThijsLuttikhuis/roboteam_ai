@@ -78,7 +78,7 @@ void GoToPosBezier::Initialize() {
     curve.angles = pathFinder.getAngles();
 
     /// Start timer
-    time(&startTime);
+    startTime = std::chrono::system_clock::now();
 }
 
 /// Get an update on the skill
@@ -115,15 +115,17 @@ bt::Node::Status GoToPosBezier::Update() {
     }
 
     // Check if the goal point on the curve is reached
-    time(&now);
-    timeDif = difftime(now, startTime);
-    int currentPoint = (int) round((timeDif/totalTime)*curve.positions.size());
+    now = std::chrono::system_clock::now();
+    timeDif = now - startTime;
+    int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
 
+    std::cout << "Current point: " << currentPoint << std::endl;
     // Set variables
-    angularVelocity = curve.angles[currentPoint];
-    xVelocity = curve.velocities[currentPoint].x;
-    yVelocity = curve.velocities[currentPoint].y;
+    angularVelocity = (curve.angles[currentPoint+1]-curve.angles[currentPoint])*(float)totalTime/1000;
+    double currentAngle = robot.angle;
+    xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+    yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);

@@ -27,10 +27,10 @@ class GoToPosBezier : public Skill {
     private:
 
         // Variables
-        time_t startTime;
-        time_t now;
-        double timeDif;
-        double totalTime = 1; // TODO: get this value from PathFinder
+        std::chrono::system_clock::time_point startTime;
+        std::chrono::system_clock::time_point now;
+        std::chrono::duration<double> timeDif;
+        double totalTime = 5; // TODO: get this value from PathFinder
         float angularVelocity;
         double xVelocity;
         double yVelocity;
