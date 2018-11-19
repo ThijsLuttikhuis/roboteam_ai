@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     factory.init();
 
-    std::string currentTree = "victoryDanceStrategy";
+    std::string currentTree = "DemoStrategy";
 
     while (ros::ok()) {
         ros::spinOnce();

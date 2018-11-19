@@ -22,7 +22,7 @@
             "description": "",
             "id": "ccc",
             "title": "Tactic",
-            "name": "DemoTactic",
+            "name": "BezierDemoTactic",
             "properties": {
               "testdemotac": "testdemotac"
             }

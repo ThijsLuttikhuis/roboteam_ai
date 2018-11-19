@@ -5,11 +5,12 @@
 #include "Switches.h"
 #include "../bt/Node.hpp"
 #include "../bt/tactics/DemoTactic.h"
+#include "../bt/tactics/BezierDemoTactic.h"
 #include "../bt/tactics/ParallelSequenceTest.h"
 #include "../bt/tactics/VictoryDanceTactic.h"
 #include "../skills/Rotate.h"
 
-std::vector<std::string> Switches::tacticNames = {"testTactic", "testParallelTactic", "victoryDanceTactic"};
+std::vector<std::string> Switches::tacticNames = {"testTactic", "testParallelTactic", "victoryDanceTactic", "bezierTactic"};
 
 std::vector<std::string> Switches::strategyNames = {"testStrategy", "testParallelSequence", "victoryDanceStrategy"};
 
@@ -94,6 +95,10 @@ bt::Node::Ptr Switches::tacticSwitch(std::string name, bt::Blackboard::Ptr prope
     else if (name == "VictoryDanceTactic") {
         node = std::make_shared<bt::VictoryDanceTactic>("VictoryDanceTactic", properties);
     }
+    else if (name == "BezierDemoTactic") {
+        node = std::make_shared<bt::BezierDemoTactic>("BezierDemoTactic", properties);
+    }
+
 
     return node;
 }
