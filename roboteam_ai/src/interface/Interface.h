@@ -14,6 +14,7 @@
 #include "../utilities/Field.h"
 #include "../utilities/World.h"
 #include <exception>
+#include <cmath>
 
 namespace rtt {
 namespace ai {
@@ -31,12 +32,13 @@ class Interface {
         void drawText(std::string text, int x, int y);
         void drawLine(Vector2 p1, Vector2 p2, SDL_Color color);
         void drawRect(Vector2 position, int w, int h, SDL_Color color);
-        void drawRobot(int id,  Vector2 position, SDL_Color color);
+        void drawRobot(roboteam_msgs::WorldRobot robot, SDL_Color color);
 
         SDL_Renderer *renderer = nullptr;
         SDL_Window* window = nullptr;
         TTF_Font * font = nullptr;
         Vector2 factor;
+        int fieldmargin;
         Vector2 toScreenPosition(Vector2 fieldPos);
 };
 
