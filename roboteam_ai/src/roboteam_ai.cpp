@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     auto factory = BTFactory::getFactory();
 
     factory.init();
-    std::string currentTree = "victoryDanceStrategy";
+    std::string currentTree = "DemoStrategy";
 
     // interface
     rtt::ai::interface::Interface gui;
@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
                 std::cerr << "else" << std::endl;
             }
         }
-        if (drawInterface) {
-            gui.drawFrame();
-        }
+//        if (drawInterface) {
+//            gui.drawFrame();
+//        }
         rate.sleep();
     }
 
