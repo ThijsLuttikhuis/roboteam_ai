@@ -120,9 +120,13 @@ bt::Node::Status GoToPosBezier::Update() {
     int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
 
-    std::cout << "Current point: " << currentPoint << std::endl;
     // Set variables
-    angularVelocity = (curve.angles[currentPoint+1]-curve.angles[currentPoint])*(float)totalTime/1000;
+    if (currentPoint < curve.angles.size()-1) {
+        angularVelocity = (curve.angles[currentPoint+1]-curve.angles[currentPoint])*(float)totalTime/1000;
+    } else {
+        angularVelocity = 0;
+    }
+
     double currentAngle = robot.angle;
     xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
     yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
