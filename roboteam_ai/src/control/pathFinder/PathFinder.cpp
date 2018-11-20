@@ -27,29 +27,27 @@ namespace rtt{
             objectCoordinatesVector.emplace_back(endPosition);
 
             // Add safety coordinates
-//            int safetyMargin = 30; // TODO from parameter list; distance between field and field border
-//            int nSteps = 5; // determines amount of safety points
-//
-//            // float width = Field::get_field().field_width; // returns 0
-//            // float length = Field::get_field().field_length; // returns 0
-//            float fieldWidth = 1200; // TODO needs to be lines above here
-//            float fieldLength = 900;
-//
-//            std::vector<float> xEdges = {-fieldWidth/2 - safetyMargin, fieldWidth/2 + safetyMargin};
-//            for (float x: xEdges) {
-//                for (float y=-fieldLength/2; y<=fieldLength/2; y=y+fieldLength/nSteps) {
-//                    objectCoordinatesVector.emplace_back(Vector2(x,y));
-//                }
-//            }
-//
-//            std::vector<float> yEdges = {-fieldLength/2 - safetyMargin, fieldLength/2 + safetyMargin};
-//            for (float y: yEdges) {
-//                for (float x=-fieldWidth/2; x<=fieldWidth/2; x=x+fieldWidth/nSteps) {
-//                    objectCoordinatesVector.emplace_back(Vector2(x,y));
-//                }
-//            }
-//
-//            // Add robot coordinates
+            int safetyMargin = 30; // TODO from parameter list; distance between field and field border
+            int nSteps = 5; // determines amount of safety points
+
+            float fieldWidth = Field::get_field().field_width; // returns 0
+            float fieldLength = Field::get_field().field_length; // returns 0
+
+            std::vector<float> xEdges = {-fieldWidth/2 - safetyMargin, fieldWidth/2 + safetyMargin};
+            for (float x: xEdges) {
+                for (float y=-fieldLength/2; y<=fieldLength/2; y=y+fieldLength/nSteps) {
+                    objectCoordinatesVector.emplace_back(Vector2(x,y));
+                }
+            }
+
+            std::vector<float> yEdges = {-fieldLength/2 - safetyMargin, fieldLength/2 + safetyMargin};
+            for (float y: yEdges) {
+                for (float x=-fieldWidth/2; x<=fieldWidth/2; x=x+fieldWidth/nSteps) {
+                    objectCoordinatesVector.emplace_back(Vector2(x,y));
+                }
+            }
+
+            // Add robot coordinates
             objectCoordinatesVector.insert(objectCoordinatesVector.end(), robotCoordinates.begin(), robotCoordinates.end());
 
             // Change object vector to matrix
