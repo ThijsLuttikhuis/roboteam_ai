@@ -41,10 +41,11 @@ Interface::~Interface() {
     TTF_Quit();
 }
 
-void Interface::drawFrame() {
+void Interface::drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments) {
     drawField();
     drawRobots();
     drawBall();
+    drawVoronoi(voronoiNodes, voronoiSegments);
 
     // render to screen
     SDL_RenderPresent(renderer);
@@ -121,6 +122,41 @@ void Interface::drawRobot(roboteam_msgs::WorldRobot robot, SDL_Color color) {
     angleDestPoint.y = robot.pos.y + sin(robot.angle);
     drawLine(robot.pos, angleDestPoint, color);
 
+}
+
+void Interface::drawVoronoi(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments) {
+    // Draw voronoiNodes
+    Vector2 nodePos;
+    SDL_Color nodeColor;
+    nodeColor.r = 150; nodeColor.g = 0; nodeColor.b = 150; nodeColor.a = 255;
+    for (int i=0; i<voronoiNodes.n_rows; i++) {
+        nodePos.x = voronoiNodes(i,1);
+        nodePos.y = voronoiNodes(i,2);
+        drawRect(nodePos, 5, 5, nodeColor);
+    }
+
+    // Draw voronoiSegments
+    Vector2 segmentPos1;
+    Vector2 segmentPos2;
+    int nodeID1, nodeID2;
+    SDL_Color segmentColor;
+    segmentColor.r = 150; segmentColor.g = 0; segmentColor.b = 150; segmentColor.a = 255;
+    for (int i=0; i<voronoiSegments.n_rows; i++) {
+        nodeID1 = voronoiSegments(i,1);
+        nodeID2 = voronoiSegments(i,2);
+
+        for (int j=0; j<voronoiNodes.n_rows; j++) {
+            if (voronoiNodes(j,0)==nodeID1) {
+                segmentPos1.x = voronoiNodes(j,1);
+                segmentPos1.y = voronoiNodes(j,2);
+            }
+            else if (voronoiNodes(j,0)==nodeID2) {
+                segmentPos2.x = voronoiNodes(j,1);
+                segmentPos2.y = voronoiNodes(j,2);
+            }
+        }
+        drawLine(segmentPos1, segmentPos2, segmentColor);
+    }
 }
 
 
