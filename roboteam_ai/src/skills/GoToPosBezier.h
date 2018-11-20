@@ -55,7 +55,7 @@ class GoToPosBezier : public Skill {
 
         bool checkTargetPos(Vector2 pos);
 
-        void sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity);
+        void sendMoveCommand();
 
         Progression checkProgression();
 

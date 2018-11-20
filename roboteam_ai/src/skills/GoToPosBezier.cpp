@@ -119,20 +119,16 @@ bt::Node::Status GoToPosBezier::Update() {
     timeDif = now - startTime;
     int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
+    double currentAngle = robot.angle;
+
 
     // Set variables
-    if (currentPoint < curve.angles.size()-1) {
-        angularVelocity = (curve.angles[currentPoint+1]-curve.angles[currentPoint])*(float)totalTime/1000;
-    } else {
-        angularVelocity = 0;
-    }
-
-    double currentAngle = robot.angle;
+    angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
     xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
     yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
-    sendMoveCommand(angularVelocity, xVelocity, yVelocity);
+    sendMoveCommand();
 
     // Now check the progress we made
     currentProgress = checkProgression();
@@ -156,7 +152,7 @@ bool GoToPosBezier::checkTargetPos(Vector2 pos) {
 }
 
 /// Send a move robot command with a vector
-void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity) {
+void GoToPosBezier::sendMoveCommand() {
     if (! checkTargetPos(targetPos)) {
         ROS_ERROR("Target position is not correct GoToPos");
         return;
@@ -167,11 +163,10 @@ void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, dou
     command.use_angle = 1;
     command.w = angularVelocity;
 
-    command.x_vel = xVelocity;
-    command.y_vel = yVelocity;
+    command.x_vel = (float)xVelocity;
+    command.y_vel = (float)yVelocity;
 
     publishRobotCommand(command);
-    commandSend = true;
     std::cerr << "                  xvel: " << command.x_vel << ", yvel: " << command.y_vel << ", w_vel: " << command.w
               << std::endl;
 }
@@ -208,7 +203,6 @@ void GoToPosBezier::Terminate(status s) {
     command.y_vel = 0;
 
     publishRobotCommand(command);
-    commandSend = true;
 }
 
 } // ai
