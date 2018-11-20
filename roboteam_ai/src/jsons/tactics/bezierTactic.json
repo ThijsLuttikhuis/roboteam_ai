@@ -19,20 +19,20 @@
             "description": "Start of a Role"
           },
           "111": {
-            "children": ["201","301", "401"],
+            "child": "201",
             "description": "",
             "display": {
               "x": -48,
               "y": 0
             },
             "id": "111",
-            "name": "MemSequence",
+            "name": "UntilSuccess",
             "properties": {
               "ROLE": "testRole",
               "testRepeat": "testRepeat",
               "limit": "0"
             },
-            "title": "Repeat"
+            "title": "UntilSuccess"
           },
           "201": {
             "description": "",
@@ -42,33 +42,10 @@
             "title": "GoToPosBezier",
             "properties": {
               "ROLE": "testRole",
-              "goBehindBall": "true",
-              "goToBall": "false",
+              "goBehindBall": "false",
+              "goToBall": "true",
               "Position": "{ 0.0, 0.0 }"
             }
-          },
-          "401": {
-            "description": "",
-            "display": {},
-            "id": "401",
-            "name": "Kick",
-            "properties": {
-              "ROLE": "testRole"
-            },
-            "title": "Kick"
-          },
-          "301": {
-            "description": "",
-            "display": {},
-            "id": "301",
-            "name": "GoToPosBezier",
-            "properties": {
-              "goToBall": "true",
-              "goBehindBall": "false",
-              "Position": "{ 5.0, 5.0 }",
-              "ROLE": "testRole"
-            },
-            "title": "GoToPosBezier"
           }
         }
       }
