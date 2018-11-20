@@ -54,10 +54,10 @@ void GoToPosBezier::Initialize() {
 
     /// Create robot coordinates vector & other parameters for the path
     // TODO: don't hardcode end orientation & velocity
-    float endAngle = (float) M_PI;
+    auto endAngle = (float) M_PI;
     float endVelocity = 0;
     Vector2 robotVel = robot.vel;
-    float startVelocity = (float)robotVel.length();
+    auto startVelocity = (float)robotVel.length();
 
 
     auto world = World::get_world();
@@ -79,6 +79,13 @@ void GoToPosBezier::Initialize() {
 
     /// Start timer
     startTime = std::chrono::system_clock::now();
+
+    /// Set PID values
+    K.prev_err = 0;
+    K.kP = 0.02;
+    K.kI = 0.01;
+    K.kD = 0.01;
+    K.timeDiff = 0.02; // 50 Hz?
 }
 
 /// Get an update on the skill
@@ -121,11 +128,15 @@ bt::Node::Status GoToPosBezier::Update() {
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
     double currentAngle = robot.angle;
 
+    // Calculate additional velocity due to position error
+    Vector2 posError = curve.positions[currentPoint] - robot.pos;
+    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
+    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
 
     // Set variables
     angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
-    xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    xVelocity = xOutputPID + curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+    yVelocity = yOutputPID + curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
     sendMoveCommand();

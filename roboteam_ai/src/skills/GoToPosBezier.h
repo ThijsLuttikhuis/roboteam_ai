@@ -8,6 +8,7 @@
 #include "Skill.h"
 #include "roboteam_utils/Vector2.h"
 #include "../control/pathFinder/PathFinder.h"
+#include "../control/ControlUtils.h"
 
 namespace rtt {
 namespace ai {
@@ -34,6 +35,7 @@ class GoToPosBezier : public Skill {
         float angularVelocity;
         double xVelocity;
         double yVelocity;
+        control::ControlUtils::PIDvariables K;
 
         struct Curve {
           std::vector<rtt::Vector2> positions;
