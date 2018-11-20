@@ -1,17 +1,15 @@
 #include "ros/ros.h"
-#include "DangerFinder/DangerFinder.h"
+#include "dangerfinder/DangerFinder.h"
 #include "io/IOManager.h"
-#include "treeinterp/TreeInterpreter.h"
 #include "utilities/Referee.hpp"
+#include "interface/Interface.h"
 #include "utilities/StrategyManager.h"
 #include "treeinterp/BTFactory.h"
+#include "interface/Interface.h"
 
 namespace df = rtt::ai::dangerfinder;
 namespace io = rtt::ai::io;
 namespace ai = rtt::ai;
-
-roboteam_msgs::World worldMsg;
-
 using Status = bt::Node::Status;
 
 int main(int argc, char* argv[]) {
@@ -20,6 +18,7 @@ int main(int argc, char* argv[]) {
 
     // init IOManager and subscribe to all topics immediately
     io::IOManager IOManager(true);
+
     roboteam_msgs::World worldMsg;
     roboteam_msgs::GeometryData geometryMsg;
     roboteam_msgs::RefereeData refereeMsg;
@@ -33,11 +32,23 @@ int main(int argc, char* argv[]) {
     auto factory = BTFactory::getFactory();
 
     factory.init();
+    std::string currentTree = "victoryDanceStrategy";
 
-    std::string currentTree = "DemoStrategy";
+    // interface
+    rtt::ai::interface::Interface gui;
+    bool drawInterface = true;
 
     while (ros::ok()) {
         ros::spinOnce();
+
+        if (drawInterface) {
+            SDL_Event event;
+            while(SDL_PollEvent(&event) != 0) {
+                if (event.type == SDL_QUIT) {
+                    return 0;
+                }
+            }
+        }
 
         // make ROS worldstate and geometry data globally accessible
         worldMsg = IOManager.getWorldState();
@@ -47,8 +58,13 @@ int main(int argc, char* argv[]) {
         ai::Field::set_field(geometryMsg.field);
         ai::Referee::setRefereeData(refereeMsg);
 
+
+
         if (!ai::World::didReceiveFirstWorld) continue;
 
+        if (df::DangerFinder::instance().hasCalculated()) {
+            df::DangerData dangerData = df::DangerFinder::instance().getMostRecentData();
+        }
 
         // for refereedata:
         // ai::StrategyManager strategyManager;
@@ -72,6 +88,9 @@ int main(int argc, char* argv[]) {
             } else {
                 std::cerr << "else" << std::endl;
             }
+        }
+        if (drawInterface) {
+            gui.drawFrame();
         }
         rate.sleep();
     }

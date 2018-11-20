@@ -4,6 +4,10 @@ project(roboteam_ai)
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -O0 -Wall --coverage")
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
+find_package(SDL2)
+find_package(SDL2TTF)
+include_directories(${SDL2_INCLUDE_DIR} ${SDL2TTF_INCLUDE_DIR})
+
 find_package(catkin REQUIRED COMPONENTS
         roboteam_msgs
         roboteam_utils
@@ -34,24 +38,24 @@ set(JSON_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/treeinterp/BTImport.h)
 
 set(DANGER_FINDER_SOURCES
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/CanShootModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/CanShootModule.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/DangerData.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/DangerData.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/DangerFinder.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/DangerFinder.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/PartialResult.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/PartialResult.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/DangerModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/DangerModule.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/DistanceModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/DistanceModule.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/FreeModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/FreeModule.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/HasBallModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/HasBallModule.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/OrientationModule.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/DangerFinder/modules/OrientationModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/CanShootModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/CanShootModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/DangerData.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/DangerData.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/DangerFinder.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/DangerFinder.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/PartialResult.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/PartialResult.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/DangerModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/DangerModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/DistanceModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/DistanceModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/FreeModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/FreeModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/HasBallModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/HasBallModule.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/OrientationModule.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/OrientationModule.h
         )
 
 
@@ -199,10 +203,10 @@ add_executable(Roboteam_AI
         ${SKILLS_SOURCES}
         ${CONDITIONS_SOURCES}
         ${CONTROL_SOURCES}
-        )
+        roboteam_ai/src/interface/Interface.cpp roboteam_ai/src/interface/Interface.h)
 
 add_dependencies(Roboteam_AI ${catkin_EXPORTED_TARGETS})
-target_link_libraries(Roboteam_AI ${catkin_LIBRARIES})
+target_link_libraries(Roboteam_AI ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2TTF_LIBRARY})
 
 #############
 ## Testing ##
@@ -239,6 +243,8 @@ target_compile_options(ai_tests PUBLIC --coverage)
 target_link_libraries(ai_tests
         ${catkin_LIBRARIES}
         gcov
+        ${SDL2_LIBRARY}
+        ${SDL2TTF_LIBRARY}
         )
 
 include(CodeCoverage)
