@@ -22,4 +22,12 @@ double ControlUtils::calculateAngularVelocity(double robotAngle, double targetAn
     if (angleDiff > 1)angleDiff = 1;
     return direction*(std::pow(rotFactor, angleDiff - 1)*rtt::ai::constants::MAX_ANGULAR_VELOCITY - 1/rotFactor);
 }
+
+float ControlUtils::PIDcontroller(float err, ControlUtils::PIDvariables &K) {
+    float P = K.kP * err; // Proportional controller
+    float I = K.kI * err * K.timeDiff; // Integral controller
+    float D = K.kD * (err-K.prev_err)/K.timeDiff; // Derivative controller
+    K.prev_err = err;
+    return P + I + D;
+}
 }

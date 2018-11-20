@@ -7,8 +7,18 @@
 
 namespace control {
 class ControlUtils {
+    private:
+        typedef struct {
+          float kP;
+          float kI;
+          float kD;
+          float prev_err;
+          float timeDiff;
+        } PIDvariables;
+
     public:
         static double calculateAngularVelocity(double robotAngle, double targetAngle);
+        float PIDcontroller(float err, PIDvariables &K);
 };
 }
 
