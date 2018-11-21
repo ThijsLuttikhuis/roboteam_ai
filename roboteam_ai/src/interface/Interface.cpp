@@ -141,7 +141,10 @@ void Interface::drawVoronoi(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voro
     int nodeID1, nodeID2;
     SDL_Color segmentColor;
     segmentColor.r = 150; segmentColor.g = 0; segmentColor.b = 150; segmentColor.a = 255;
+    int count;
+
     for (int i=0; i<voronoiSegments.n_rows; i++) {
+        count = 0;
         nodeID1 = voronoiSegments(i,1);
         nodeID2 = voronoiSegments(i,2);
 
@@ -149,13 +152,17 @@ void Interface::drawVoronoi(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voro
             if (voronoiNodes(j,0)==nodeID1) {
                 segmentPos1.x = voronoiNodes(j,1);
                 segmentPos1.y = voronoiNodes(j,2);
+                count++;
             }
             else if (voronoiNodes(j,0)==nodeID2) {
                 segmentPos2.x = voronoiNodes(j,1);
                 segmentPos2.y = voronoiNodes(j,2);
+                count++;
             }
         }
-        drawLine(segmentPos1, segmentPos2, segmentColor);
+        if (count==2) {
+            drawLine(segmentPos1, segmentPos2, segmentColor);
+        }
     }
 }
 
