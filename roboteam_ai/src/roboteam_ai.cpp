@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
                 std::cerr << "else" << std::endl;
             }
         }
-//        if (drawInterface) {
-//            gui.drawFrame();
-//        }
+        if (drawInterface) {
+            gui.drawFrame();
+        }
         rate.sleep();
     }
 
