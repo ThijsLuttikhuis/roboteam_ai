@@ -32,9 +32,6 @@ class GoToPosBezier : public Skill {
         std::chrono::system_clock::time_point now;
         std::chrono::duration<double> timeDif;
         double totalTime = 5; // TODO: get this value from PathFinder
-        float angularVelocity;
-        double xVelocity;
-        double yVelocity;
         control::ControlUtils::PIDvariables K;
 
         struct Curve {
@@ -57,7 +54,7 @@ class GoToPosBezier : public Skill {
 
         bool checkTargetPos(Vector2 pos);
 
-        void sendMoveCommand();
+        void sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity);
 
         Progression checkProgression();
 

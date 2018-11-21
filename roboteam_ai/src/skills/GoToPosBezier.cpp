@@ -129,17 +129,18 @@ bt::Node::Status GoToPosBezier::Update() {
     double currentAngle = robot.angle;
 
     // Calculate additional velocity due to position error
-    Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
-    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
+//    Vector2 posError = curve.positions[currentPoint] - robot.pos;
+//    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
+//    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
+    float xOutputPID = 0; float yOutputPID = 0;
 
     // Set variables
-    angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
-    xVelocity = xOutputPID + curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    yVelocity = yOutputPID + curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    float angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
+    double xVelocity = xOutputPID + curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+    double yVelocity = yOutputPID + curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
-    sendMoveCommand();
+    sendMoveCommand(angularVelocity, xVelocity, yVelocity);
 
     // Now check the progress we made
     currentProgress = checkProgression();
@@ -163,7 +164,7 @@ bool GoToPosBezier::checkTargetPos(Vector2 pos) {
 }
 
 /// Send a move robot command with a vector
-void GoToPosBezier::sendMoveCommand() {
+void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity) {
     if (! checkTargetPos(targetPos)) {
         ROS_ERROR("Target position is not correct GoToPos");
         return;
