@@ -26,6 +26,7 @@ class Interface {
         explicit Interface();
         ~Interface();
         void drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments);
+        void drawFrame();
     private:
         void drawField();
         void drawRobots();

@@ -51,6 +51,15 @@ void Interface::drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &vorono
     SDL_RenderPresent(renderer);
 }
 
+void Interface::drawFrame() {
+    drawField();
+    drawRobots();
+    drawBall();
+
+    // render to screen
+    SDL_RenderPresent(renderer);
+}
+
 void Interface::drawField() {
     // set background
     SDL_SetRenderDrawColor(renderer, c::FIELD_COLOR.r, c::FIELD_COLOR.g, c::FIELD_COLOR.b, c::FIELD_COLOR.a);
