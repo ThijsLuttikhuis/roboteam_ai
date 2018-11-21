@@ -99,13 +99,13 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         // of the field
         arma::Mat<float> tempRow;
         arma::Mat<int> tempRow1;
-        tempRow1 << circleCenters(circleCenters.n_rows-1,0)+1 << startID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows-1,0)+1 << startID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
         tempRow << circleCenters(circleCenters.n_rows-1,0)+1 << startOrientationNode.first << startOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         tempRow.reset(); tempRow1.reset();
-        tempRow1 << circleCenters(circleCenters.n_rows-1,0)+1 << endID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows-1,0)+1 << endID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
         tempRow << circleCenters(circleCenters.n_rows-1,0)+1 << endOrientationNode.first << endOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
@@ -326,7 +326,7 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
     for (int i = 0; i < adjacentTriangles.n_rows; i++) {
         int firstTriangle = adjacentTriangles(i,0)+2;
 
-        for (int k = 1; k < 4; k++) {
+        for (int k = 1; k < adjacentTriangles.n_cols; k++) {
             int nextTriangle = adjacentTriangles(i,k)+2;
             if ((nextTriangle != INT_MAX) && (nextTriangle > firstTriangle)) {
                 arma::Mat<int> tempRow(1,2); // Make row with first and next triangle so they can be inserted
@@ -530,20 +530,17 @@ arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCe
 }
 
 arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCenters) {
-    // float width = Field::get_field().field_width; // returns 0
-    // float length = Field::get_field().field_length; // returns 0
-
-    float width = 1200; // TODO needs to be lines above here, but they currently return 0
-    float length = 900;
+     float width = Field::get_field().field_width; // returns 0
+     float length = Field::get_field().field_length; // returns 0
 
     arma::uvec rowsToRemove(circleCenters.n_rows);
     rowsToRemove.fill(0);
 
     arma::Mat<float> fieldEdges;
-    fieldEdges << width/2   << length/2   << arma::endr
-               << -width/2  << length/2   << arma::endr
-               << -width/2  << -length/2  << arma::endr
-               << width/2   << -length/2  << arma::endr;
+    fieldEdges << length/2   << width/2   << arma::endr
+               << -length/2  << width/2   << arma::endr
+               << -length/2  << -width/2  << arma::endr
+               << length/2   << -width/2  << arma::endr;
 
     for (int i = 0; i < circleCenters.n_rows; i ++) {
         if ((circleCenters(i,1) > fieldEdges(0,0)) || (circleCenters(i,1) < fieldEdges(1,0)) ||
