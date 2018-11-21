@@ -28,8 +28,8 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     std::pair<arma::Mat<float>, arma::Mat<float>> circleParameters = findCircumcircles(triangleCombinations,
             objectCoordinates);
 
-    arma::Mat<float> circleCenter = circleParameters.first;
-    arma::Mat<int> triangle = triangleCombinations;
+    //arma::Mat<float> circleCenter = circleParameters.first;
+    //arma::Mat<int> triangle = triangleCombinations;
 
     // Make triangles Delaunay
     std::pair<arma::Mat<float>, arma::Mat<int>> delaunayTriangles = delaunayFilter(objectCoordinates,
@@ -99,14 +99,14 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         // of the field
         arma::Mat<float> tempRow;
         arma::Mat<int> tempRow1;
-        tempRow1 << circleCenters.n_rows << startID << circleCenters.n_rows << arma::endr;
-        tempRow << circleCenters.n_rows << startOrientationNode.first << startOrientationNode.second << arma::endr;
+        tempRow1 << circleCenters(circleCenters.n_rows-1,0)+1 << startID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
+        tempRow << circleCenters(circleCenters.n_rows-1,0)+1 << startOrientationNode.first << startOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         tempRow.reset(); tempRow1.reset();
-        tempRow1 << circleCenters.n_rows << endID << circleCenters.n_rows << arma::endr;
-        tempRow << circleCenters.n_rows << endOrientationNode.first << endOrientationNode.second << arma::endr;
+        tempRow1 << circleCenters(circleCenters.n_rows-1,0)+1 << endID << circleCenters(circleCenters.n_rows-1,0)+1 << arma::endr;
+        tempRow << circleCenters(circleCenters.n_rows-1,0)+1 << endOrientationNode.first << endOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
     }
