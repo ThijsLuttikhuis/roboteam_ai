@@ -90,10 +90,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
                 endOrientationAngle, circleCenters,
                 objectCoordinates);
 
-        // Remove nodes that are in the defence area or outside of the field
-        circleCenters = removeIfInDefenceArea(circleCenters);
-        circleCenters = removeIfOutOfField(circleCenters);
-
         // Add start & end orientation nodes to circleCenters and orientation - start/end combination to voronoi segments
         // These must never be removed so it needs to happen after the removal of nodes within defence area / outside
         // of the field
@@ -109,6 +105,11 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         tempRow << circleCenters(circleCenters.n_rows-1,0)+1 << endOrientationNode.first << endOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
+
+        // Remove nodes that are in the defence area or outside of the field
+        circleCenters = removeIfInDefenceArea(circleCenters);
+        circleCenters = removeIfOutOfField(circleCenters);
+
     }
 
     // Change name for the rest of the calculations
