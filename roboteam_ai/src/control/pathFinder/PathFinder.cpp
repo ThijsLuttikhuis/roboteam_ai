@@ -27,7 +27,7 @@ namespace rtt{
             objectCoordinatesVector.emplace_back(endPosition);
 
             // Add safety coordinates
-            int safetyMargin = 3; // TODO from parameter list; distance between field and field border
+            float safetyMargin = 0.3; // TODO from parameter list; distance between field and field border
             int nSteps = 5; // determines amount of safety points
 
             float fieldWidth = Field::get_field().field_width; // returns 0
@@ -61,10 +61,6 @@ namespace rtt{
             VoronoiCreator voronoiCreator;
             VoronoiCreator::parameters voronoiParameters = voronoiCreator.createVoronoi(objectCoordinatesMatrix,
                     startAngle, endAngle);
-
-            interface::Interface gui;
-            gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments);
-
 
             FindShortestPath shortestPathFinder;
             std::vector<Vector2> path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
