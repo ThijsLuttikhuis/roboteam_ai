@@ -62,6 +62,9 @@ namespace rtt{
             VoronoiCreator::parameters voronoiParameters = voronoiCreator.createVoronoi(objectCoordinatesMatrix,
                     startAngle, endAngle);
 
+            interface::Interface gui;
+            gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments);
+
             FindShortestPath shortestPathFinder;
             std::vector<Vector2> path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
                     voronoiParameters.segments, startID, endID, objectCoordinatesVector, startAngle, endAngle);
