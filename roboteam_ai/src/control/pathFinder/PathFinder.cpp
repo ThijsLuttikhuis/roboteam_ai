@@ -75,6 +75,7 @@ namespace rtt{
             curvePoints = curveCreator.getCurvePositions();
             velocities = curveCreator.getCurveVelocities();
             angles = curveCreator.getCurveOrientations();
+            totalTime = curveCreator.getTotalTime();
         }
 
         std::vector<Vector2> PathFinder::getCurvePoints() {
@@ -88,6 +89,9 @@ namespace rtt{
         std::vector<float> PathFinder::getAngles() {
             return angles;
         }
+    double PathFinder::getTotalTime() const {
+        return totalTime;
+    }
     }
 }
 

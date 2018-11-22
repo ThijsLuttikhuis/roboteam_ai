@@ -22,6 +22,7 @@ namespace rtt{
             std::vector<Vector2> getCurvePoints();
             std::vector<Vector2> getVelocities();
             std::vector<float> getAngles();
+            double getTotalTime() const;
 
             void calculatePath(Vector2 endPosition, Vector2 startPosition, float endAngle, float startAngle, float startVelocity,
                     float endVelocity, std::vector<Vector2> robotCoordinates);
@@ -30,6 +31,7 @@ namespace rtt{
             std::vector<Vector2> curvePoints;
             std::vector<Vector2> velocities;
             std::vector<float> angles;
+            double totalTime;
         };
     }
 }

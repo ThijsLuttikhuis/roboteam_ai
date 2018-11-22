@@ -214,8 +214,8 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
 
 void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity, int numberOfCurvePieces) {
     // add two control points to assure the given velocities
-    startVelocity *= totalTime;
-    endVelocity *= totalTime;
+//    startVelocity *= totalTime;
+//    endVelocity *= totalTime;
     auto numControlPoints = controlPoints.size() + 2*(numberOfCurvePieces-1); // current number of CP's + 2 CP's from this function + all CP's that combineCurves adds
 
     float startScaleFactor = startVelocity/(numControlPoints-1);
@@ -275,10 +275,20 @@ void CurveCreator::calculateVelocity() {
     curveVelocities[0] = curveVelocities[1] + (curveVelocities[1]-curveVelocities[2]);
     curveVelocities.back() = curveVelocities[curveVelocities.size()-2] + (curveVelocities[curveVelocities.size()-2]-curveVelocities[curveVelocities.size()-3]);
 
+    // Get the highest velocity that will be reached in the curve
+    double highestVelocity = 0.0;
+    for (const Vector2 &vel : curveVelocities) {
+        highestVelocity = (vel.length() > highestVelocity) ? vel.length() : highestVelocity;
+    }
+
+    totalTime = highestVelocity/maxVelocity;
     for (int i = 0; i<numPoints; i++) {
         curveVelocities[i].x /= totalTime;
         curveVelocities[i].y /= totalTime;
     }
+
+    std::cout << "Highest curve velocity: " << highestVelocity << std::endl;
+    std::cout << "Total time: " << totalTime << std::endl;
 }
 
 void CurveCreator::calculateAcceleration() {
@@ -332,6 +342,9 @@ const std::vector<Vector2> &CurveCreator::getCurveVelocities() const {
 
 const std::vector<float> &CurveCreator::getCurveOrientations() const {
     return curveOrientations;
+}
+double CurveCreator::getTotalTime() const {
+    return totalTime;
 }
 } // ai
 } // rtt

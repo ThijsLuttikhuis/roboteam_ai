@@ -76,6 +76,7 @@ void GoToPosBezier::Initialize() {
     curve.positions = pathFinder.getCurvePoints();
     curve.velocities = pathFinder.getVelocities();
     curve.angles = pathFinder.getAngles();
+    totalTime = pathFinder.getTotalTime();
 
     /// Start timer
     startTime = std::chrono::system_clock::now();

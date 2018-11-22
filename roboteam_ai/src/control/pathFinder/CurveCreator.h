@@ -16,16 +16,19 @@ namespace rtt {
         private:
             // Variables
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
-            float totalTime = 15;
+            float maxVelocity = 3.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
             std::vector<Vector2> curvePositions;
             std::vector<Vector2> controlPoints;
             float numPoints; // number of curve points
+            double totalTime;
+            public:
+                double getTotalTime() const;
+            private:
 
-
-            // Functions
+                // Functions
             void createCurvePiece(std::vector<Vector2> pathPiece, std::vector<Vector2> robotCoordinates);
             std::vector<Vector2> findMostDangerousObstacle(std::vector<Vector2> trianglePoints, std::vector<Vector2> robotCoordinates);
             bool isObstacleInTriangle(std::vector<Vector2> trianglePoints, Vector2 obstaclePos);
