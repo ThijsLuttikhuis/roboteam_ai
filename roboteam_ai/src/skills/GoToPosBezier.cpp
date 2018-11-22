@@ -62,11 +62,13 @@ void GoToPosBezier::Initialize() {
 
     auto world = World::get_world();
     std::vector<Vector2> robotCoordinates;
-    for (int i = 0; i < world.us.size(); i ++) {
-        robotCoordinates.emplace_back(world.us[i].pos);
+    for (auto ourBot: world.us) {
+        if (ourBot.id != robot.id) {
+            robotCoordinates.emplace_back(ourBot.pos);
+        }
     }
-    for (int i = 0; i < world.them.size(); i ++) {
-        robotCoordinates.emplace_back(world.them[i].pos);
+    for (auto theirBot: world.them) {
+        robotCoordinates.emplace_back(theirBot.pos);
     }
 
     PathFinder pathFinder;
@@ -91,15 +93,6 @@ void GoToPosBezier::Initialize() {
 
 /// Get an update on the skill
 bt::Node::Status GoToPosBezier::Update() {
-
-//    auto world = World::get_world();
-//    std::vector<Vector2> robotCoordinates;
-//    for (int i = 0; i < world.us.size(); i++) {
-//        robotCoordinates.emplace_back(world.us[i].pos);
-//    }
-//    for (int i = 0; i < world.them.size(); i++) {
-//        robotCoordinates.emplace_back(world.them[i].pos);
-//    }
 
     if (World::getRobotForId(robotID, true)) {
         robot = World::getRobotForId(robotID, true).get();
@@ -190,7 +183,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 1.0;                 // max offset or something.
+    double maxMargin = 0.1;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
