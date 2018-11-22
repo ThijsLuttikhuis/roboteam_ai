@@ -31,6 +31,7 @@ class Interface {
         void drawField();
         void drawRobots();
         void drawBall();
+        void drawCursorPos();
         void drawVoronoi(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments);
         void drawText(std::string text, int x, int y);
         void drawLine(Vector2 p1, Vector2 p2, SDL_Color color);

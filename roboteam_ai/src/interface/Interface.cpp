@@ -55,6 +55,7 @@ void Interface::drawFrame() {
     drawField();
     drawRobots();
     drawBall();
+    drawCursorPos();
 
     // render to screen
     SDL_RenderPresent(renderer);
@@ -186,7 +187,18 @@ void Interface::drawRect(Vector2 position, int w, int h, SDL_Color color) {
     rect.h = h;
 
     SDL_RenderFillRect(renderer, &rect);
+}
 
+
+void Interface::drawCursorPos() {
+    int cursorX, cursorY;
+    SDL_GetMouseState(&cursorX, &cursorY);
+
+    double fieldX, fieldY;
+    fieldX = (cursorX - c::WINDOW_SIZE_X/2)/factor.x;
+    fieldY = (cursorY - c::WINDOW_SIZE_Y/2)/factor.y;
+    std::string cursorPosStr = "Cursor: { " + std::to_string(fieldX) + ", " + std::to_string(fieldY) + " }";
+    drawText(cursorPosStr, 50, 10);
 }
 
 } // interface
