@@ -41,7 +41,7 @@ namespace rtt{
                     arma::Mat<float> circleCenters, int startID, int endID);
 
             arma::Mat<float> angleCalculator(int inp, arma::Mat<float> objectCoordidnates, arma::Mat<float> circleCenters,
-                    arma::Mat<int> voronoiSegments);
+                    std::pair<arma::Mat<int>, arma::Mat<int>> startEndSegments);
 
             std::pair<float, float> orientationNodeCreator(int inp, arma::Mat<float> angles, float orientationAngle,
                     arma::Mat<float> circleCenters, arma::Mat<float> objectCoordinates);

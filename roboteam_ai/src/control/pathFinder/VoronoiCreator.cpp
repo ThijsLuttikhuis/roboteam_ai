@@ -391,16 +391,24 @@ VoronoiCreator::startEndSegmentCreator(arma::Mat<int> triangleCombinations, arma
 // Calculate angles between the start/end point and the points connected to it
 arma::Mat<float>
 VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoordinates, arma::Mat<float> circleCenters,
-        arma::Mat<int> voronoiSegments) {
+        std::pair<arma::Mat<int>, arma::Mat<int>> startEndSegments) {
     arma::Mat<float> angles;
     arma::Mat<float> temp(1,2);
     float ptX = objectCoordinates(inp,0); // x coordinate of the input coordinate (start or end point)
     float ptY = objectCoordinates(inp,1);
+    arma::Mat<int> segments;
+
+    if (inp == 0) { // startID
+        segments = startEndSegments.first;
+    }
+    else { // endID
+        segments = startEndSegments.second;
+    }
 
     int p = 0;
-    for (int i = 0; i < voronoiSegments.n_rows; i++) {
-        if (voronoiSegments(i,1) == inp)  {
-            int index = voronoiSegments(i,2);
+    for (int i = 0; i < segments.n_rows; i++) {
+        if (segments(i,1) == inp)  {
+            int index = segments(i,2);
             float x = circleCenters(index,1);
             float y = circleCenters(index,2);
 
