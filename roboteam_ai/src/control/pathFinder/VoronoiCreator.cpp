@@ -81,6 +81,10 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     arma::Mat<float> anglesStart = angleCalculator(startID, objectCoordinates, circleCenters, voronoiSegments);
     arma::Mat<float> anglesEnd = angleCalculator(endID, objectCoordinates, circleCenters, voronoiSegments);
 
+    // Remove start/end segments from segment list
+    int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
+    voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
+
     // Calculate orientation nodes
     if (!anglesStart.is_empty() || !anglesEnd.is_empty()) {
         std::pair<std::pair<float, float>, std::pair<int, int>> startOrientationParameters =
@@ -131,8 +135,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1,0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
             << endOrientationSegments.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-
-        std::cout << voronoiSegments << std::endl;
 
         // Remove nodes that are in the defence area or outside of the field
         circleCenters = removeIfInDefenceArea(circleCenters);
