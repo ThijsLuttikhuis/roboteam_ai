@@ -16,7 +16,7 @@ namespace rtt {
         private:
             // Variables
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
-            float maxVelocity = 3.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
+            float maxVelocity = 1.5; // maximum absolute velocity TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
@@ -24,9 +24,6 @@ namespace rtt {
             std::vector<Vector2> controlPoints;
             float numPoints; // number of curve points
             double totalTime;
-            public:
-                double getTotalTime() const;
-            private:
 
                 // Functions
             void createCurvePiece(std::vector<Vector2> pathPiece, std::vector<Vector2> robotCoordinates);
@@ -42,11 +39,14 @@ namespace rtt {
             void calculateOrientation();
             double factorial(float x);
             void addVelocityControlPoints(float startVelocity, float endVelocity, int numberOfCurvePieces);
+            std::vector<Vector2> createConvexHull(std::vector<Vector2> curvePiece);
 
         public:
             CurveCreator();
             CurveCreator(float numPoints);
             void createCurve(std::vector<Vector2> pathNodes, std::vector<Vector2> robotCoordinates, float startVelocity, float endVelocity);
+
+            double getTotalTime() const;
 
             const std::vector<Vector2> &getCurvePositions() const;
 
