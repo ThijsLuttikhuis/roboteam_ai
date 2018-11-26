@@ -143,6 +143,38 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
     return convex;
 }
 
+bool CurveCreator::isAnyObstacleInConvexHull(std::vector<Vector2> convex, std::vector<Vector2> robotCoordinates) {
+    // Check if there is any obstacle in the convex
+    float sumOfAngles;
+    for (Vector2 &obstPos : robotCoordinates) {
+        // If the sum of angles between obstacle to vertices is 2*PI, the obstacle is inside the polygon.
+        // Simultaneously, check if the obstacle is on one of the edges.
+        sumOfAngles = 0;
+        for (int i = 0; i < convex.size(); i++) {
+            if (i == convex.size()-1) {
+                sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[0] - obstPos).normalize()));
+
+                // Is obstacle on edge?
+                if (distancePointToLine(obstPos, convex[i], convex[0]) < robotDiameter/2) {
+                    return true;
+                }
+            } else {
+                sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i+1] - obstPos).normalize()));
+
+                // Is obstacle on edge?
+                if (distancePointToLine(obstPos, convex[i], convex[i+1]) < robotDiameter/2) {
+                    return true;
+                }
+            }
+        }
+
+        if (abs(sumOfAngles - 2*M_PI) < 0.002*M_PI) { // allow 0.1 percent deviation
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CurveCreator::isObstacleInTriangle(std::vector<Vector2> trianglePoints, Vector2 obstaclePos) {
     if (trianglePoints.size() != 3) {
         std::cout << "Please enter 3 points, not " << trianglePoints.size() << "!" << std::endl;
@@ -431,6 +463,7 @@ const std::vector<Vector2> &CurveCreator::getCurveVelocities() const {
 const std::vector<float> &CurveCreator::getCurveOrientations() const {
     return curveOrientations;
 }
+
 double CurveCreator::getTotalTime() const {
     return totalTime;
 }

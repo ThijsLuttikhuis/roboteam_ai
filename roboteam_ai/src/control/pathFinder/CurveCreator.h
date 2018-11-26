@@ -40,6 +40,7 @@ namespace rtt {
             double factorial(float x);
             void addVelocityControlPoints(float startVelocity, float endVelocity, int numberOfCurvePieces);
             std::vector<Vector2> createConvexHull(std::vector<Vector2> curvePiece);
+            bool isAnyObstacleInConvexHull(std::vector<Vector2> polygon, std::vector<Vector2> robotCoordinates);
 
         public:
             CurveCreator();
