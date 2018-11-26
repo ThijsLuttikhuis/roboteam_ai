@@ -40,7 +40,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
         std::vector<Vector2> convex;
         std::vector<Vector2> dangerousObstacle;
 
-        for (int i = 2; i < pathNodes.size(); i ++) {
+        for (int i = 2; i < pathNodes.size() - 1; i ++) {
             convex = createConvexHull();
             dangerousObstacle = findDangerousObstacle(convex, robotCoordinates);
             if (dangerousObstacle.empty()) {
