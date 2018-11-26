@@ -33,6 +33,7 @@ class GoToPosBezier : public Skill {
         std::chrono::duration<double> timeDif;
         double totalTime;
         control::ControlUtils::PIDvariables K;
+        PathFinder pathFinder;
 
         struct Curve {
           std::vector<rtt::Vector2> positions;
@@ -59,6 +60,8 @@ class GoToPosBezier : public Skill {
         Progression checkProgression();
 
         bool commandSend;
+
+        void updateCurveData();
 
 };
 } // ai

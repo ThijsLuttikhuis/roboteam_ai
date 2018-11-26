@@ -52,43 +52,7 @@ void GoToPosBezier::Initialize() {
         }
     }
 
-    /// Create robot coordinates vector & other parameters for the path
-    // TODO: don't hardcode end orientation & velocity
-    auto endAngle = (float) M_PI;
-    float endVelocity = 0;
-    Vector2 robotVel = robot.vel;
-    auto startVelocity = (float)robotVel.length();
-
-
-    auto world = World::get_world();
-    std::vector<Vector2> robotCoordinates;
-    for (auto ourBot: world.us) {
-        if (ourBot.id != robot.id) {
-            robotCoordinates.emplace_back(ourBot.pos);
-        }
-    }
-    for (auto theirBot: world.them) {
-        robotCoordinates.emplace_back(theirBot.pos);
-    }
-
-    PathFinder pathFinder;
-    pathFinder.calculatePath(targetPos, robot.pos, endAngle, robot.angle, startVelocity, endVelocity, robotCoordinates);
-
-    /// Get path parameters
-    curve.positions = pathFinder.getCurvePoints();
-    curve.velocities = pathFinder.getVelocities();
-    curve.angles = pathFinder.getAngles();
-    totalTime = pathFinder.getTotalTime();
-
-    /// Start timer
-    startTime = std::chrono::system_clock::now();
-
-    /// Set PID values
-    K.prev_err = 0;
-    K.kP = 0.01;
-    K.kI = 0.2;
-    K.kD = 0.01;
-    K.timeDiff = 0.016; // 60 Hz?
+    updateCurveData();
 }
 
 /// Get an update on the skill
@@ -135,6 +99,12 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
+
+    // Calculate new curve if at the end
+    if (currentPoint == curve.positions.size()-1) {
+        sendMoveCommand(0,0,0);
+        updateCurveData();
+    }
 
     // Now check the progress we made
     currentProgress = checkProgression();
@@ -183,7 +153,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.05;                 // max offset or something.
+    double maxMargin = 0.2;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
@@ -209,6 +179,50 @@ void GoToPosBezier::Terminate(status s) {
     command.y_vel = 0;
 
     publishRobotCommand(command);
+}
+
+/// Create robot coordinates vector & other parameters for the path
+void GoToPosBezier::updateCurveData() {
+    // TODO: don't hardcode end orientation & velocity
+    auto endAngle = (float) M_PI;
+    float endVelocity = 0;
+    Vector2 robotVel = robot.vel;
+    auto startVelocity = (float)robotVel.length();
+
+    auto world = World::get_world();
+    std::vector<Vector2> robotCoordinates;
+    for (auto ourBot: world.us) {
+        if (ourBot.id != robot.id) {
+            robotCoordinates.emplace_back(ourBot.pos);
+        }
+    }
+    for (auto theirBot: world.them) {
+        robotCoordinates.emplace_back(theirBot.pos);
+    }
+
+    float startAngle;
+    if (curve.positions.empty()) {
+        startAngle = robot.angle;
+    } else {
+        startAngle = (float)curve.velocities.back().angle();
+    }
+    pathFinder.calculatePath(targetPos, robot.pos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
+
+    /// Get path parameters
+    curve.positions = pathFinder.getCurvePoints();
+    curve.velocities = pathFinder.getVelocities();
+    curve.angles = pathFinder.getAngles();
+    totalTime = pathFinder.getTotalTime();
+
+    /// Start timer
+    startTime = std::chrono::system_clock::now();
+
+    /// Set PID values
+    K.prev_err = 0;
+    K.kP = 0.01;
+    K.kI = 0.2;
+    K.kD = 0.01;
+    K.timeDiff = 0.016; // 60 Hz?
 }
 
 } // ai
