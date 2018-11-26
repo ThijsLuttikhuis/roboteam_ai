@@ -92,10 +92,10 @@ std::vector<Vector2> CurveCreator::findMostDangerousObstacle(std::vector<Vector2
 
 std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePiece) {
     /// Use Graham Scan to turn curve piece into Convex Hull
-    // Find point P that has the lowest y-coordinate
+    // Find point P that has the lowest y-coordinate (or x-coordinate if y is equal)
     Vector2 P(DBL_MAX, DBL_MAX);
     for (Vector2 &point : curvePiece) {
-        if (point.y < P.y) {
+        if ((point.y < P.y) or (point.y == P.y and point.x < P.x)) {
             P = point;
         }
     }
@@ -125,9 +125,9 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
     int index = 0;
     Vector2 vec1, vec2;
     for (Vector2 &point : sortedList) {
-        vec1 = convex[index+1] - convex[index];
+        vec1 = convex[index + 1] - convex[index];
         vec2 = point - convex[index];
-        crossProduct = vec1.x * vec2.y - vec1.y * vec2.x;
+        crossProduct = vec1.x*vec2.y - vec1.y*vec2.x;
 
         if (crossProduct < 0) {
             // Right turn, erase last point from convex
@@ -136,7 +136,7 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
         else {
             // Left turn, add point to convex
             convex.push_back(point);
-            index++;
+            index ++;
         }
     }
 
@@ -274,6 +274,11 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
 
         // set initial and final velocity
         addVelocityControlPoints(startVelocity, endVelocity, numberOfCurvePieces);
+
+        // update curvePieceEdgeIndices with velocity control points
+        for (int i = 1; i < curvePieceEdgeIndices.size(); i ++) {
+            curvePieceEdgeIndices[i] ++;
+        }
 
         // combine curves
         if (curvePieceEdgeIndices.size() > 2) {
