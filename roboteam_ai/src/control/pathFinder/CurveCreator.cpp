@@ -30,71 +30,64 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
     }
 }
 
-void CurveCreator::createCurvePiece(std::vector<Vector2> pathPiece,
-        std::vector<Vector2> robotCoordinates) {
-    if (pathPiece.size() == 1) {
-        std::cout << "Oops, only 1 path node?" << std::endl;
-    }
-    else if (pathPiece.size() == 2) {
-        controlPoints.push_back(pathPiece[1]);
-    }
-    else {
-        controlPoints.push_back(pathPiece[0]
-                + (pathPiece[1] - pathPiece[0]).scale(1)); // TODO: .scale() could be used to minimize curvature
-        std::vector<Vector2> dangerZone; // Danger zone is the area contained by the next three path nodes
-        std::vector<Vector2> mostDangerousObstacle; // Obstacle in dangerZone closest to first path line
-        for (int i = 0; i < pathPiece.size() - 2; i ++) {
-            dangerZone = {pathPiece[i], pathPiece[i + 1], pathPiece[i + 2]};
-            mostDangerousObstacle = findMostDangerousObstacle(dangerZone, robotCoordinates);
-            if (mostDangerousObstacle.empty()) {
-                controlPoints.push_back(pathPiece[i + 1] + (pathPiece[i + 2] - pathPiece[i + 1]).scale(
+void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates,
+        float startVelocity, float endVelocity) {
+    controlPoints.push_back(pathNodes[0]); // First path node is always a control point
+    controlPoints.push_back(pathNodes[1]); // Second path node is always a control point
+
+    if (pathNodes.size() > 2) {
+        controlPoints.push_back(pathNodes[2]); // Third path node is always a control point if it exists
+        std::vector<Vector2> convex;
+        std::vector<Vector2> dangerousObstacle;
+
+        for (int i = 2; i < pathNodes.size(); i ++) {
+            convex = createConvexHull();
+            dangerousObstacle = findDangerousObstacle(convex, robotCoordinates);
+            if (dangerousObstacle.empty()) {
+                controlPoints.push_back(pathNodes[i] + (pathNodes[i + 1] - pathNodes[i]).scale(
                         1)); // TODO: .scale() could be used to minimize curvature
             }
             else {
-                // calculate control point
-                Vector2 maxOfControlPoint = pointOnLinePastObstacle(dangerZone[0], mostDangerousObstacle[0],
-                        {dangerZone[1], dangerZone[2]});
-                controlPoints.push_back(pathPiece[i + 1] + (maxOfControlPoint - pathPiece[i + 1]).scale(
-                        1)); // TODO: .scale() could be used to minimize curvature
-                return;
-            }
-        }
-    }
-}
-
-std::vector<Vector2> CurveCreator::findMostDangerousObstacle(std::vector<Vector2> trianglePoints,
-        std::vector<Vector2> robotCoordinates) {
-    std::vector<Vector2> mostDangerousObstacle;
-    for (Vector2 &obstaclePos: robotCoordinates) {
-        if (isObstacleInTriangle(trianglePoints, obstaclePos)) {
-            if (mostDangerousObstacle.empty()) {
-                mostDangerousObstacle.push_back(obstaclePos);
-            }
-            else {
-                Vector2 startToCurrentObstacle = mostDangerousObstacle[0] - trianglePoints[0];
-                Vector2 startToNewObstacle = obstaclePos - trianglePoints[0];
-                Vector2 pathLine = trianglePoints[1] - trianglePoints[0];
-
-                float anglePathToCurrentObstacle = (float) abs(pathLine.angle() - startToCurrentObstacle.angle())
-                        - (float) atan(robotDiameter/startToCurrentObstacle.length());
-                float anglePathToNewObstacle = (float) abs(pathLine.angle() - startToNewObstacle.angle())
-                        - (float) atan(robotDiameter/startToNewObstacle.length());
-
-                if (anglePathToNewObstacle < anglePathToCurrentObstacle) {
-                    mostDangerousObstacle.pop_back();
-                    mostDangerousObstacle.push_back(obstaclePos);
+                // change control point until no obstacle is in the convex anymore
+                // TODO: determine the control point in a mathematical way
+                while (!dangerousObstacle.empty()) {
+                    controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
+                            (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(0.5);
+                    convex = createConvexHull();
+                    dangerousObstacle = findDangerousObstacle(convex, robotCoordinates);
                 }
+                controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
+                        (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(1); // TODO: .scale() could be used to minimize curvature
+                break;
             }
         }
     }
-    return mostDangerousObstacle;
+
+    if (controlPoints.back() != pathNodes.back()) {
+        endVelocity = FLT_MAX; // Maximize velocity if not at the end
+    }
+
+    // set initial and final velocity
+    addVelocityControlPoints(startVelocity, endVelocity);
 }
 
-std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePiece) {
+std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> convex,
+        std::vector<Vector2> robotCoordinates) {
+    std::vector<Vector2> dangerousObstacle;
+    for (Vector2 &obstaclePos: robotCoordinates) {
+        if (isObstacleInConvexHull(convex, obstaclePos)) {
+            dangerousObstacle.push_back(obstaclePos);
+            break;
+        }
+    }
+    return dangerousObstacle;
+}
+
+std::vector<Vector2> CurveCreator::createConvexHull() {
     /// Use Graham Scan to turn curve piece into Convex Hull
     // Find point P that has the lowest y-coordinate (or x-coordinate if y is equal)
     Vector2 P(DBL_MAX, DBL_MAX);
-    for (Vector2 &point : curvePiece) {
+    for (Vector2 &point : controlPoints) {
         if ((point.y < P.y) or (point.y == P.y and point.x < P.x)) {
             P = point;
         }
@@ -105,12 +98,20 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
     sortedList.push_back(P);
 
     Vector2 unitVecX(1, 0);
-    for (Vector2 &point : curvePiece) {
+    for (Vector2 &point : controlPoints) {
         if (point != P) {
-            for (int i = 1; i < sortedList.size(); i ++) {
-                if ((point - P).normalize().dot(unitVecX) > (sortedList[i] - P).normalize().dot(unitVecX)) {
-                    sortedList.insert(sortedList.begin() + i, point);
-                    break;
+            if (sortedList.size() == 1) {
+                sortedList.push_back(point);
+            }
+            else {
+                for (int i = 1; i < sortedList.size(); i ++) {
+                    if ((point - P).normalize().dot(unitVecX) > (sortedList[i] - P).normalize().dot(unitVecX)) {
+                        sortedList.insert(sortedList.begin() + i, point);
+                        break;
+                    } else if (i == sortedList.size()-1) {
+                        sortedList.push_back(point);
+                        break;
+                    }
                 }
             }
         }
@@ -118,24 +119,25 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
 
     // Iterate over points and check whether making a left or right turn
     std::vector<Vector2> convex;
-    convex.push_back(P);
+    convex.push_back(sortedList[0]);
     convex.push_back(sortedList[1]);
 
     double crossProduct;
     int index = 0;
     Vector2 vec1, vec2;
-    for (Vector2 &point : sortedList) {
+    for (int i = 2; i < sortedList.size(); i++) {
         vec1 = convex[index + 1] - convex[index];
-        vec2 = point - convex[index];
+        vec2 = sortedList[i] - convex[index];
         crossProduct = vec1.x*vec2.y - vec1.y*vec2.x;
 
         if (crossProduct < 0) {
-            // Right turn, erase last point from convex
+            // Right turn, erase last point from convex and add next one from list
             convex.pop_back();
+            convex.push_back(sortedList[i]);
         }
         else {
             // Left turn, add point to convex
-            convex.push_back(point);
+            convex.push_back(sortedList[i]);
             index ++;
         }
     }
@@ -143,63 +145,31 @@ std::vector<Vector2> CurveCreator::createConvexHull(std::vector<Vector2> curvePi
     return convex;
 }
 
-bool CurveCreator::isAnyObstacleInConvexHull(std::vector<Vector2> convex, std::vector<Vector2> robotCoordinates) {
-    // Check if there is any obstacle in the convex
-    float sumOfAngles;
-    for (Vector2 &obstPos : robotCoordinates) {
-        // If the sum of angles between obstacle to vertices is 2*PI, the obstacle is inside the polygon.
-        // Simultaneously, check if the obstacle is on one of the edges.
-        sumOfAngles = 0;
-        for (int i = 0; i < convex.size(); i++) {
-            if (i == convex.size()-1) {
-                sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[0] - obstPos).normalize()));
+bool CurveCreator::isObstacleInConvexHull(std::vector<Vector2> convex, Vector2 obstPos) {
+    // Check if the obstacle is in the convex
+    float sumOfAngles = 0;
+    // If the sum of angles between obstacle to vertices is 2*PI, the obstacle is inside the polygon.
+    // Simultaneously, check if the obstacle is on one of the edges.
+    for (int i = 0; i < convex.size(); i ++) {
+        if (i == convex.size() - 1) {
+            sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[0] - obstPos).normalize()));
 
-                // Is obstacle on edge?
-                if (distancePointToLine(obstPos, convex[i], convex[0]) < robotDiameter/2) {
-                    return true;
-                }
-            } else {
-                sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i+1] - obstPos).normalize()));
-
-                // Is obstacle on edge?
-                if (distancePointToLine(obstPos, convex[i], convex[i+1]) < robotDiameter/2) {
-                    return true;
-                }
+            // Is obstacle on edge?
+            if (distancePointToLine(obstPos, convex[i], convex[0]) < robotDiameter/2) {
+                return true;
             }
         }
+        else {
+            sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i + 1] - obstPos).normalize()));
 
-        if (abs(sumOfAngles - 2*M_PI) < 0.002*M_PI) { // allow 0.1 percent deviation
-            return true;
+            // Is obstacle on edge?
+            if (distancePointToLine(obstPos, convex[i], convex[i + 1]) < robotDiameter/2) {
+                return true;
+            }
         }
     }
-    return false;
-}
 
-bool CurveCreator::isObstacleInTriangle(std::vector<Vector2> trianglePoints, Vector2 obstaclePos) {
-    if (trianglePoints.size() != 3) {
-        std::cout << "Please enter 3 points, not " << trianglePoints.size() << "!" << std::endl;
-        return false;
-    }
-
-    // Draw lines from the obstacle to the triangle points. If the sum of the angles between these lines is equal to 2*PI, then the obstacle is inside the triangle
-    float sumOfAngles = 0;
-    sumOfAngles += acos(
-            (trianglePoints[0] - obstaclePos).normalize().dot((trianglePoints[1] - obstaclePos).normalize()));
-    sumOfAngles += acos(
-            (trianglePoints[1] - obstaclePos).normalize().dot((trianglePoints[2] - obstaclePos).normalize()));
-    sumOfAngles += acos(
-            (trianglePoints[2] - obstaclePos).normalize().dot((trianglePoints[0] - obstaclePos).normalize()));
-
-    if (abs(sumOfAngles - 2*M_PI) < 0.002*M_PI) { // Allow a deviation of 0.1 percent
-        return true;
-    }
-
-    // If the obstacle is on one of the vertices, it is also inside the triangle.
-    bool obstacleOnVertex1 = (distancePointToLine(obstaclePos, trianglePoints[0], trianglePoints[1]) < robotDiameter/2);
-    bool obstacleOnVertex2 = (distancePointToLine(obstaclePos, trianglePoints[1], trianglePoints[2]) < robotDiameter/2);
-    bool obstacleOnVertex3 = (distancePointToLine(obstaclePos, trianglePoints[2], trianglePoints[0]) < robotDiameter/2);
-
-    return (obstacleOnVertex1 or obstacleOnVertex2 or obstacleOnVertex3);
+    return abs(sumOfAngles - 2*M_PI) < 0.002*M_PI; // allow 0.1 percent deviation
 }
 
 float
@@ -247,90 +217,11 @@ Vector2 CurveCreator::pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstac
     return pointOnLine;
 }
 
-std::vector<Vector2>
-CurveCreator::combineCurves(std::vector<Vector2> curve1, std::vector<Vector2> curve2) {
-    std::vector<Vector2> totalCurve;
-
-    if (curve1.empty()) {
-        totalCurve = curve2;
-    }
-    else {
-        float n1 = curve1.size(); // order of first curve
-        float n2 = curve2.size(); // order of second curve
-        float a = n1/n2;
-        float b = (n1 - 1)/(n2 - 1);
-
-        Vector2 P0 = curve1.back(); // common point
-        Vector2 Pmin2 = curve1[curve1.size() - 2];
-        Vector2 P2 = curve2[1];
-
-        // Calculate control points to add in order to assure continuity
-        Vector2 Pmin1 = P0.scale(1 + 1/(2*a) + b/2)/(1 + b) + Pmin2.scale(b/(2 + 2*b)) + P2.scale(1/(2*a + 2*a*b));
-        Vector2 P1 = P0.scale(1 + a) - Pmin1.scale(a);
-
-        totalCurve.insert(totalCurve.begin(), curve1.begin(), curve1.end() - 1);
-        totalCurve.push_back(Pmin1);
-        totalCurve.push_back(P0);
-        totalCurve.push_back(P1);
-        totalCurve.insert(totalCurve.end(), curve2.begin() + 1, curve2.end());
-    }
-
-    return totalCurve;
-}
-
-void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates,
-        float startVelocity, float endVelocity) {
-    if (pathNodes.size() == 2) {
-        controlPoints.push_back(pathNodes[0]);
-        controlPoints.push_back(pathNodes[1]);
-    }
-    else {
-        int startNodeIndex = 1;
-        int numberOfCurvePieces = 1;
-        std::vector<Vector2> pathPiece;
-        std::vector<int> curvePieceEdgeIndices;
-        curvePieceEdgeIndices.push_back(0);
-
-        controlPoints.push_back(pathNodes[0]); // First path node is always a control point
-        while ((controlPoints.back().dist(pathNodes.back())) > 0.01) {
-            pathPiece.clear();
-            pathPiece.push_back(controlPoints.back());
-            for (int i = startNodeIndex; i < pathNodes.size(); i ++) {
-                pathPiece.push_back(pathNodes[i]);
-            }
-            createCurvePiece(pathPiece, robotCoordinates);
-            startNodeIndex = (int) controlPoints.size() - numberOfCurvePieces;
-            numberOfCurvePieces ++;
-            curvePieceEdgeIndices.push_back((int) controlPoints.size());
-        }
-
-        // set initial and final velocity
-        addVelocityControlPoints(startVelocity, endVelocity, numberOfCurvePieces);
-
-        // update curvePieceEdgeIndices with velocity control points
-        for (int i = 1; i < curvePieceEdgeIndices.size(); i ++) {
-            curvePieceEdgeIndices[i] ++;
-        }
-
-        // combine curves
-        if (curvePieceEdgeIndices.size() > 2) {
-            std::vector<Vector2> combinedControlPoints;
-            for (int j = 0; j < curvePieceEdgeIndices.size() - 1; j ++) {
-                std::vector<Vector2> curve2(controlPoints.begin() + curvePieceEdgeIndices[j],
-                        controlPoints.begin() + curvePieceEdgeIndices[j + 1] + 1);
-                combinedControlPoints = combineCurves(combinedControlPoints, curve2);
-            }
-            controlPoints = combinedControlPoints;
-        }
-    }
-}
-
-void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity, int numberOfCurvePieces) {
+void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity) {
     // add two control points to assure the given velocities
-//    startVelocity *= totalTime;
-//    endVelocity *= totalTime;
-    auto numControlPoints = controlPoints.size() + 2*(numberOfCurvePieces
-            - 1); // current number of CP's + 2 CP's from this function + all CP's that combineCurves adds
+    startVelocity *= totalTime;
+    endVelocity *= totalTime;
+    auto numControlPoints = controlPoints.size() + 2; // Including velocity control points
 
     float startScaleFactor = startVelocity/(numControlPoints - 1);
     startScaleFactor = startScaleFactor > (float) (controlPoints[1] - controlPoints[0]).length()

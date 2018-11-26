@@ -26,21 +26,19 @@ namespace rtt {
             double totalTime;
 
                 // Functions
-            void createCurvePiece(std::vector<Vector2> pathPiece, std::vector<Vector2> robotCoordinates);
-            std::vector<Vector2> findMostDangerousObstacle(std::vector<Vector2> trianglePoints, std::vector<Vector2> robotCoordinates);
-            bool isObstacleInTriangle(std::vector<Vector2> trianglePoints, Vector2 obstaclePos);
+            std::vector<Vector2> findDangerousObstacle(std::vector<Vector2> trianglePoints,
+                    std::vector<Vector2> robotCoordinates);
             float distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 linepoint2);
             Vector2 pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos, std::vector<Vector2> linepoints);
-            std::vector<Vector2> combineCurves(std::vector<Vector2> curve1, std::vector<Vector2> curve2);
             void calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates, float startVelocity, float endVelocity);
             void convertPointsToCurve();
             void calculateVelocity();
             void calculateAcceleration();
             void calculateOrientation();
             double factorial(float x);
-            void addVelocityControlPoints(float startVelocity, float endVelocity, int numberOfCurvePieces);
-            std::vector<Vector2> createConvexHull(std::vector<Vector2> curvePiece);
-            bool isAnyObstacleInConvexHull(std::vector<Vector2> polygon, std::vector<Vector2> robotCoordinates);
+            void addVelocityControlPoints(float startVelocity, float endVelocity);
+            std::vector<Vector2> createConvexHull();
+            bool isObstacleInConvexHull(std::vector<Vector2> polygon, Vector2 obstPos);
 
         public:
             CurveCreator();
