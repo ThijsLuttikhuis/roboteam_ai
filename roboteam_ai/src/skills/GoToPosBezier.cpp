@@ -100,9 +100,10 @@ bt::Node::Status GoToPosBezier::Update() {
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
 
+
     // Calculate new curve if at the end
     if (currentPoint == curve.positions.size()-1) {
-        sendMoveCommand(0,0,0);
+        //sendMoveCommand(0,0,0);
         updateCurveData();
     }
 
