@@ -85,10 +85,10 @@ void GoToPosBezier::Initialize() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 0.02;
-    K.kI = 0.01;
+    K.kP = 0.01;
+    K.kI = 0.2;
     K.kD = 0.01;
-    K.timeDiff = 0.02; // 50 Hz?
+    K.timeDiff = 0.016; // 60 Hz?
 }
 
 /// Get an update on the skill
@@ -123,10 +123,10 @@ bt::Node::Status GoToPosBezier::Update() {
     double currentAngle = robot.angle;
 
     // Calculate additional velocity due to position error
-//    Vector2 posError = curve.positions[currentPoint] - robot.pos;
-//    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
-//    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
-    float xOutputPID = 0; float yOutputPID = 0;
+    Vector2 posError = curve.positions[currentPoint] - robot.pos;
+    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
+    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
+    //float xOutputPID = 0; float yOutputPID = 0;
 
     // Set variables
     float angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
@@ -183,7 +183,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.1;                 // max offset or something.
+    double maxMargin = 0.05;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
