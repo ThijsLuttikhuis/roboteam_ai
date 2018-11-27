@@ -632,7 +632,7 @@ int VoronoiCreator::findClosestPoint(std::pair<float, float> node, arma::Mat<flo
         distance(i - 2, 0) = x;
     }
 
-    int closestPoint = index_min(distance);
+    int closestPoint = distance.index_min();
 
     return closestPoint;
 }
