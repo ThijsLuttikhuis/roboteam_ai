@@ -177,13 +177,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     voronoiParameters.nodes = voronoiNodes;
     voronoiParameters.segments = voronoiSegments;
 
-    float index = 8;
-    for (int i = 0; i < voronoiNodes.n_rows; i ++) {
-        if (index == voronoiNodes(i,0)){
-            std::cout << voronoiNodes(i,0) << " " << voronoiNodes(i,1) << " " << voronoiNodes(i,2) << std::endl;
-        }
-    }
-
     return voronoiParameters;
 }
 
@@ -549,14 +542,10 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     adjacentAngle.insert_rows(0, greaterAngle.row(indexGreater));
     adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
 
-    std::cout << adjacentAngle(0, 0) << " " << adjacentAngle(1, 0) << std::endl;
-
     // Determine the coordinates of the points that the orientation vector is pointing in between
     arma::Mat<float> linePoints;
     linePoints << circleCenters(adjacentAngle(0, 0), 1) << circleCenters(adjacentAngle(0, 0), 2) << arma::endr
                << circleCenters(adjacentAngle(1, 0), 1) << circleCenters(adjacentAngle(1, 0), 2) << arma::endr;
-
-    std::cout << linePoints(0,0) << " " << linePoints(0,1) << std::endl;
 
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
@@ -579,8 +568,6 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // Make pair of points that should be connected to the orientation node
     std::pair<int, int> orientationSegments = std::make_pair(adjacentAngle(0, 0), adjacentAngle(1, 0));
-
-    std::cout << orientationSegments.first << " " << orientationSegments.second << std::endl;
 
     std::pair<std::pair<float, float>, std::pair<int, int>> orientationParameters = std::make_pair(orientationNode,
             orientationSegments);
@@ -646,7 +633,6 @@ int VoronoiCreator::findClosestPoint(std::pair<float, float> node, arma::Mat<flo
         distance(i - 2, 1) = x;
     }
 
-    std::cout << distance << std::endl;
     arma::uword index = index_min(distance.col(1));
     int closestPoint = distance(index, 0);
 

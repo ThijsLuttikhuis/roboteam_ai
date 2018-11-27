@@ -207,6 +207,9 @@ void GoToPosBezier::updateCurveData() {
     } else {
         startAngle = (float)curve.velocities.back().angle();
     }
+
+    startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle = startAngle;
+    endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle = endAngle;
     pathFinder.calculatePath(targetPos, robot.pos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
