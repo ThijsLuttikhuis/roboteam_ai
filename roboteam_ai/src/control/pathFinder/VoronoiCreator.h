@@ -50,6 +50,8 @@ namespace rtt{
 
             arma::Mat<float> removeIfOutOfField(arma::Mat<float> circleCenters);
 
+            int findClosestPoint(std::pair<float, float> node, arma::Mat<float> circleCenters);
+
         public:
             VoronoiCreator();
 

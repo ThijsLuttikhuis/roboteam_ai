@@ -6,15 +6,16 @@
 
 #include "VoronoiCreator.h"
 
-namespace rtt{
-namespace ai{
+namespace rtt {
+namespace ai {
 
 VoronoiCreator::VoronoiCreator() {
 
 }
 
 // Create Voronoi diagram
-VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> objectCoordinates, const float startOrientationAngle,
+VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> objectCoordinates,
+        const float startOrientationAngle,
         const float endOrientationAngle) {
 
     // Set ID of the start and end point
@@ -38,13 +39,13 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     triangleCombinations = delaunayTriangles.second;
 
     // Add start & end point to circleCenters
-    arma::Mat<float> startPoint(1,2);
+    arma::Mat<float> startPoint(1, 2);
     startPoint << objectCoordinates(startID, 0) << objectCoordinates(startID, 1)
                << arma::endr;
 
     circleCenters.insert_rows(0, startPoint);
 
-    arma::Mat<float> endPoint(1,2);
+    arma::Mat<float> endPoint(1, 2);
     endPoint << objectCoordinates(endID, 0) << objectCoordinates(endID, 1)
              << arma::endr;
 
@@ -67,8 +68,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
 
     // Combine adjacentCenters and start & end segments to voronoiSegments
     arma::Mat<int> voronoiSegments = adjacent.second;
-
-    // Add start & end segments to voronoiSegments
     voronoiSegments.insert_rows(voronoiSegments.n_rows, startEndSegments.first);
     voronoiSegments.insert_rows(voronoiSegments.n_rows, startEndSegments.second);
 
@@ -76,6 +75,10 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     temp = getIndexColumn(voronoiSegments.n_rows);
     arma::Mat<int> indexSegments = arma::conv_to<arma::Mat<int>>::from(temp);
     voronoiSegments.insert_cols(0, indexSegments);
+
+    // Remove nodes that are in the defence area or outside of the field
+    circleCenters = removeIfInDefenceArea(circleCenters);
+    circleCenters = removeIfOutOfField(circleCenters);
 
     // Calculate angle between start & end point and their centers on the surrounding polygon
     arma::Mat<float> anglesStart = angleCalculator(startID, objectCoordinates, circleCenters, voronoiSegments);
@@ -86,7 +89,7 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
 
     // Calculate orientation nodes
-    if (!anglesStart.is_empty() || !anglesEnd.is_empty()) {
+    if (! anglesStart.is_empty() || ! anglesEnd.is_empty()) {
         std::pair<std::pair<float, float>, std::pair<int, int>> startOrientationParameters =
                 orientationNodeCreator(startID, anglesStart, startOrientationAngle, circleCenters, objectCoordinates);
         std::pair<std::pair<float, float>, std::pair<int, int>> endOrientationParameters =
@@ -97,49 +100,71 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         std::pair<int, int> startOrientationSegments = startOrientationParameters.second;
         std::pair<int, int> endOrientationSegments = endOrientationParameters.second;
 
+        // Check if segments are valid
+        // If not, find node closest to the orientation node and make that a segment
+        int s1 = 0;
+        int s2 = 0;
+
+        for (int i = 0; i < circleCenters.n_rows; i ++) {
+            if ((int) circleCenters(i, 0) == startOrientationSegments.first ||
+            circleCenters(i, 0) == startOrientationSegments.second) {
+                s1 = 1;
+            }
+            else if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
+            circleCenters(i,0) == endOrientationSegments.second) {
+                s2 = 1;
+            }
+        }
+        if (s1 == 0) {
+            startOrientationSegments.first = findClosestPoint(startOrientationNode, circleCenters);
+        }
+        else if (s2 == 0) {
+            endOrientationSegments.first = findClosestPoint(endOrientationNode, circleCenters);
+        }
+
         // Add start orientation nodes to circleCenters and orientation - start combination to voronoi segments
         // These must never be removed so it needs to happen after the removal of nodes within defence area / outside
         // of the field
         arma::Mat<float> tempRow;
         arma::Mat<int> tempRow1;
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1,0) + 1 << startID << circleCenters(circleCenters.n_rows-1,0) + 1 << arma::endr;
-        tempRow << circleCenters(circleCenters.n_rows - 1,0) + 1 << startOrientationNode.first << startOrientationNode.second << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << startID
+                 << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
+        tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << startOrientationNode.first
+                << startOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         // Add start orientation segments
         tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1,0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-            << startOrientationSegments.first << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+                 << startOrientationSegments.first << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1,0) + 1 << circleCenters(circleCenters.n_rows-1, 0)
-            << startOrientationSegments.second << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+                 << startOrientationSegments.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
         // Add end orientation nodes to circleCenters and orientation - end combination to voronoi segments
-        tempRow.reset(); tempRow1.reset();
+        tempRow.reset();
+        tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << endID
-            << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
+                 << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
         tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << endOrientationNode.first
-            << endOrientationNode.second << arma::endr;
+                << endOrientationNode.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         // Add end orientation segments
         tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-            << endOrientationSegments.first << arma::endr;
+                 << endOrientationSegments.first << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1,0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-            << endOrientationSegments.second << arma::endr;
+        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+                 << endOrientationSegments.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
-        // Remove nodes that are in the defence area or outside of the field
-        circleCenters = removeIfInDefenceArea(circleCenters);
-        circleCenters = removeIfOutOfField(circleCenters);
-
+        // std::cout << voronoiSegments << std::endl;
     }
 
     // Change name for the rest of the calculations
@@ -159,13 +184,13 @@ arma::Mat<int> VoronoiCreator::possibleCombinations(const arma::Mat<float> objec
     arma::Mat<int> triangleCombinations;
 
     int p = 0;
-    for (int i = 0; i < (nObjects-2); i++) {
-        for (int l = i+1; l < (nObjects-1); l++) {
-            for (int k = l+1; k < nObjects; k++ ) {
+    for (int i = 0; i < (nObjects - 2); i ++) {
+        for (int l = i + 1; l < (nObjects - 1); l ++) {
+            for (int k = l + 1; k < nObjects; k ++) {
                 arma::Mat<int> combination;
                 combination << i << l << k << arma::endr;
                 triangleCombinations.insert_rows(p, combination);
-                p++;
+                p ++;
             }
         }
     }
@@ -190,10 +215,10 @@ VoronoiCreator::perpendicularBisectorFromLine(std::pair<float, float> P, std::pa
     auto midPoint = std::make_pair((P.first + Q.first)/2, (P.second + Q.second)/2);
 
     // c = -bx + ay
-    c = -b * (midPoint.first) + a*(midPoint.second);
+    c = - b*(midPoint.first) + a*(midPoint.second);
 
     double temp = a;
-    a = -b;
+    a = - b;
     b = temp;
 }
 
@@ -209,7 +234,7 @@ VoronoiCreator::lineLineIntersection(double a1, double b1, double c1, double a2,
     else {
         double x = (b2*c1 - b1*c2)/determinant;
         double y = (a1*c2 - a2*c1)/determinant;
-        return std::make_pair(x,y);
+        return std::make_pair(x, y);
     }
 }
 
@@ -217,13 +242,13 @@ VoronoiCreator::lineLineIntersection(double a1, double b1, double c1, double a2,
 std::pair<arma::Mat<float>, arma::Mat<float>>
 VoronoiCreator::findCircumcircles(arma::Mat<int> triangleCombinations, arma::Mat<float> objectCoordinates) {
     // Make matrices
-    arma::Mat<float> triangleCorners = arma::ones<arma::Mat<float>>(3,2);
-    arma::Mat<float> circleCenters = arma::ones<arma::Mat<float>>(triangleCombinations.n_rows,2);
-    arma::Mat<float> radius = arma::ones<arma::Mat<float>>(triangleCombinations.n_rows,1);
+    arma::Mat<float> triangleCorners = arma::ones<arma::Mat<float>>(3, 2);
+    arma::Mat<float> circleCenters = arma::ones<arma::Mat<float>>(triangleCombinations.n_rows, 2);
+    arma::Mat<float> radius = arma::ones<arma::Mat<float>>(triangleCombinations.n_rows, 1);
 
     // Create matrix with coordinates of the three triangle corners
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
-        for (int k = 0; k < 3; k++) {
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
+        for (int k = 0; k < 3; k ++) {
             int index = triangleCombinations(i, k);
             triangleCorners(k, 0) = objectCoordinates(index, 0);
             triangleCorners(k, 1) = objectCoordinates(index, 1);
@@ -248,13 +273,13 @@ VoronoiCreator::findCircumcircles(arma::Mat<int> triangleCombinations, arma::Mat
 
         // Calculate circumcenter
         std::pair<float, float> circumcenter = lineLineIntersection(a, b, c, e, f, g);
-        circleCenters(i,0) = circumcenter.first;
-        circleCenters(i,1) = circumcenter.second;
+        circleCenters(i, 0) = circumcenter.first;
+        circleCenters(i, 1) = circumcenter.second;
 
         // Calculate radius
-        float p = circleCenters(i,0) - triangleCorners(0,0);
-        float q = circleCenters(i,1) - triangleCorners(0,1);
-        radius(i) = (float)sqrt(pow(p,2) + pow(q,2));
+        float p = circleCenters(i, 0) - triangleCorners(0, 0);
+        float q = circleCenters(i, 1) - triangleCorners(0, 1);
+        radius(i) = (float) sqrt(pow(p, 2) + pow(q, 2));
 
     }
 
@@ -270,15 +295,15 @@ VoronoiCreator::delaunayFilter(const arma::Mat<float> objectCoordinates, arma::M
     arma::uvec rowsToRemove(triangleCombinations.n_rows);
     rowsToRemove.fill(0);
 
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
 
         double ccX = circleCenters(i, 0); // circlecenter = cc
         double ccY = circleCenters(i, 1);
 
-        for (int k = 0; k < objectCoordinates.n_rows; k++) {
+        for (int k = 0; k < objectCoordinates.n_rows; k ++) {
             double ocX = objectCoordinates(k, 0); // objectcoordinate = oc
             double ocY = objectCoordinates(k, 1);
-            double distance = sqrt(pow(ccX - ocX, 2) + pow(ccY - ocY ,2));
+            double distance = sqrt(pow(ccX - ocX, 2) + pow(ccY - ocY, 2));
             float threshold = 0.0001;
 
             if ((distance < radius(i)) && (abs(distance - radius(i)) > threshold)) {
@@ -311,41 +336,41 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
     arma::Mat<int> emptyColumn = arma::conv_to<arma::Mat<int>>::from(temp);
     emptyColumn.fill(INT_MAX);
 
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
         // This is really ugly
-        newCombinations(i,0) = triangleCombinations(i,0);
-        newCombinations(i,1) = triangleCombinations(i,1);
-        newCombinations(i,2) = triangleCombinations(i,2);
-        newCombinations(i,3) = triangleCombinations(i,0);
+        newCombinations(i, 0) = triangleCombinations(i, 0);
+        newCombinations(i, 1) = triangleCombinations(i, 1);
+        newCombinations(i, 2) = triangleCombinations(i, 2);
+        newCombinations(i, 3) = triangleCombinations(i, 0);
     }
 
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
-        adjacentTriangles(i,0) = i;
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
+        adjacentTriangles(i, 0) = i;
     }
 
     int p, q;
     // Don't touch
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
         p = 1;
-        q = (int)adjacentTriangles.n_cols; // value to start inserting a new column
+        q = (int) adjacentTriangles.n_cols; // value to start inserting a new column
 
-        for (int k = 0; k < 3; k++) {
-            comb = std::make_pair(newCombinations(i,k), newCombinations(i,k+1));
+        for (int k = 0; k < 3; k ++) {
+            comb = std::make_pair(newCombinations(i, k), newCombinations(i, k + 1));
 
-            for (int l = 0; l < triangleCombinations.n_rows; l++) {
-                for (int m = 0; m < 3; m++) {
+            for (int l = 0; l < triangleCombinations.n_rows; l ++) {
+                for (int m = 0; m < 3; m ++) {
                     if (i != l) {
-                        if (newCombinations(l,m) == comb.first && newCombinations(l,m+1) == comb.second) {
-                            adjacentTriangles(i,p) = l;
-                            p++;
+                        if (newCombinations(l, m) == comb.first && newCombinations(l, m + 1) == comb.second) {
+                            adjacentTriangles(i, p) = l;
+                            p ++;
                         }
-                        if (newCombinations(l,m) == comb.second && newCombinations(l,m+1) == comb.first) {
-                            adjacentTriangles(i,p) = l;
-                            p++;
+                        if (newCombinations(l, m) == comb.second && newCombinations(l, m + 1) == comb.first) {
+                            adjacentTriangles(i, p) = l;
+                            p ++;
                         }
                         if (p >= adjacentTriangles.n_cols) {
                             adjacentTriangles.insert_cols(q, emptyColumn);
-                            q++;
+                            q ++;
                         }
                     }
                 }
@@ -354,16 +379,17 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
     }
 
     p = 0;
-    for (int i = 0; i < adjacentTriangles.n_rows; i++) {
-        int firstTriangle = adjacentTriangles(i,0)+2;
+    for (int i = 0; i < adjacentTriangles.n_rows; i ++) {
+        int firstTriangle = adjacentTriangles(i, 0) + 2;
 
-        for (int k = 1; k < adjacentTriangles.n_cols; k++) {
-            int nextTriangle = adjacentTriangles(i,k)+2;
+        for (int k = 1; k < adjacentTriangles.n_cols; k ++) {
+            int nextTriangle = adjacentTriangles(i, k) + 2;
             if ((nextTriangle != INT_MAX) && (nextTriangle > firstTriangle)) {
-                arma::Mat<int> tempRow(1,2); // Make row with first and next triangle so they can be inserted
-                tempRow(0,0) = firstTriangle; tempRow(0,1) = nextTriangle;
+                arma::Mat<int> tempRow(1, 2); // Make row with first and next triangle so they can be inserted
+                tempRow(0, 0) = firstTriangle;
+                tempRow(0, 1) = nextTriangle;
                 adjacentCenters.insert_rows(p, tempRow);
-                p++;
+                p ++;
             }
         }
     }
@@ -375,8 +401,8 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
 
 // Make column 0:a
 arma::mat VoronoiCreator::getIndexColumn(int a) {
-    arma::mat indexColumn(a,1);
-    for (int i = 0; i < a; i++) {
+    arma::mat indexColumn(a, 1);
+    for (int i = 0; i < a; i ++) {
         indexColumn(i, 0) = i;
     }
     return indexColumn;
@@ -388,28 +414,31 @@ VoronoiCreator::startEndSegmentCreator(arma::Mat<int> triangleCombinations, arma
         int startID, int endID) {
     arma::Mat<int> startComb;
     arma::Mat<int> endComb;
-    arma::Mat<int> tempComb(1,2);
+    arma::Mat<int> tempComb(1, 2);
 
     int p = 0;
     int q = 0;
 
-    for (int i = 0; i < triangleCombinations.n_rows; i++) {
-        if (triangleCombinations(i,0) == startID) {
-            if (triangleCombinations(i,1) == endID) {
-                tempComb(0,0) = endID; tempComb(0,1) = (int)circleCenters(i,0)+2;
+    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
+        if (triangleCombinations(i, 0) == startID) {
+            if (triangleCombinations(i, 1) == endID) {
+                tempComb(0, 0) = endID;
+                tempComb(0, 1) = (int) circleCenters(i, 0) + 2;
                 endComb.insert_rows(p, tempComb);
-                p++;
+                p ++;
             }
             else {
-                tempComb(0, 0) = startID; tempComb(0,1) = (int)circleCenters(i, 0)+2;
+                tempComb(0, 0) = startID;
+                tempComb(0, 1) = (int) circleCenters(i, 0) + 2;
                 startComb.insert_rows(q, tempComb);
-                q++;
+                q ++;
             }
         }
-        else if (triangleCombinations(i,0) == endID) {
-            tempComb(0,0) = endID; tempComb(0,1) = circleCenters(i,0)+2;
+        else if (triangleCombinations(i, 0) == endID) {
+            tempComb(0, 0) = endID;
+            tempComb(0, 1) = circleCenters(i, 0) + 2;
             endComb.insert_rows(p, tempComb);
-            p++;
+            p ++;
         }
     }
 
@@ -423,16 +452,16 @@ arma::Mat<float>
 VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoordinates, arma::Mat<float> circleCenters,
         arma::Mat<int> voronoiSegments) {
     arma::Mat<float> angles;
-    arma::Mat<float> temp(1,2);
-    float ptX = objectCoordinates(inp,0); // x coordinate of the input coordinate (start or end point)
-    float ptY = objectCoordinates(inp,1);
+    arma::Mat<float> temp(1, 2);
+    float ptX = objectCoordinates(inp, 0); // x coordinate of the input coordinate (start or end point)
+    float ptY = objectCoordinates(inp, 1);
 
     int p = 0;
-    for (int i = 0; i < voronoiSegments.n_rows; i++) {
-        if (voronoiSegments(i,1) == inp)  {
-            int index = voronoiSegments(i,2);
-            float x = circleCenters(index,1);
-            float y = circleCenters(index,2);
+    for (int i = 0; i < voronoiSegments.n_rows; i ++) {
+        if (voronoiSegments(i, 1) == inp) {
+            int index = voronoiSegments(i, 2);
+            float x = circleCenters(index, 1);
+            float y = circleCenters(index, 2);
 
             float angle = atan((y - ptY)/(x - ptX));
             temp << angle << index << arma::endr;
@@ -441,12 +470,12 @@ VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoor
 
             // In some cases; pi or 2pi must be added
             if (x <= ptX) {
-                angles(p,0) = angles(p,0) + (float)M_PI;
+                angles(p, 0) = angles(p, 0) + (float) M_PI;
             }
-            if (angles(p,0) < 0) {
-                angles(p,0) = angles(p,0) + 2 * (float)M_PI;
+            if (angles(p, 0) < 0) {
+                angles(p, 0) = angles(p, 0) + 2*(float) M_PI;
             }
-            p++;
+            p ++;
         }
     }
 
@@ -458,7 +487,7 @@ std::pair<std::pair<float, float>, std::pair<int, int>>
 VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, float orientationAngle,
         arma::Mat<float> circleCenters, const arma::Mat<float> objectCoordinates) {
 
-    std::pair<float, float> pt = std::make_pair(objectCoordinates(inp,0), objectCoordinates(inp,1));
+    std::pair<float, float> pt = std::make_pair(objectCoordinates(inp, 0), objectCoordinates(inp, 1));
 
     arma::Mat<float> temp(1, 2);
     arma::Mat<float> greaterAngle;
@@ -466,21 +495,21 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // If the input is the end point, add pi to end point, because the orientation point must inverted
     if (inp == 1) {
-        orientationAngle = orientationAngle + (float)M_PI;
+        orientationAngle = orientationAngle + (float) M_PI;
     }
 
     int p = 0;
     int q = 0;
 
-    for (int i = 0; i < angles.n_rows; i++) {
+    for (int i = 0; i < angles.n_rows; i ++) {
         temp << angles(i, 1) << angles(i, 0) << arma::endr;
         if (angles(i, 0) >= orientationAngle) {
             greaterAngle.insert_rows(p, temp);
-            p++;
+            p ++;
         }
         else {
             smallerAngle.insert_rows(q, temp);
-            q++;
+            q ++;
         }
     }
 
@@ -490,14 +519,14 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
         float value = angles.col(0).min();
         int index = angles.col(0).index_min();
         temp << angles(index, 1) << value << arma::endr;
-        greaterAngle.insert_rows(0,temp);
+        greaterAngle.insert_rows(0, temp);
     }
 
     if (smallerAngle.is_empty()) {
         float value = angles.col(0).max();
         int index = angles.col(0).index_max();
         temp << angles(index, 1) << value << arma::endr;
-        smallerAngle.insert_rows(0,temp);
+        smallerAngle.insert_rows(0, temp);
     }
 
     // Calculate difference between greater angles and the orientation angle
@@ -515,32 +544,33 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // Determine the coordinates of the points that the orientation vector is pointing in betweeen
     arma::Mat<float> linePoints;
-    linePoints << circleCenters(adjacentAngle(0,0),1) << circleCenters(adjacentAngle(0,0),2) << arma::endr
-               << circleCenters(adjacentAngle(1,0),1) << circleCenters(adjacentAngle(1,0),2) << arma::endr;
+    linePoints << circleCenters(adjacentAngle(0, 0), 1) << circleCenters(adjacentAngle(0, 0), 2) << arma::endr
+               << circleCenters(adjacentAngle(1, 0), 1) << circleCenters(adjacentAngle(1, 0), 2) << arma::endr;
 
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
     float orientationMargin = 100; // random value, can be anything
-    float h = orientationMargin * sin(orientationAngle);
-    float l = orientationMargin * cos(orientationAngle);
-    std::pair<float, float> ptOrientation = std::make_pair(pt.first +l, pt.second + h);
+    float h = orientationMargin*sin(orientationAngle);
+    float l = orientationMargin*cos(orientationAngle);
+    std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
 
     // Create lines and calculate intersection
     // TODO use lineLineIntersection for this
-    float a = (linePoints(0,1) - linePoints(1,1))/(linePoints(0,0) - linePoints(1,0));
-    float b = linePoints(0,1) - a * linePoints(0,0);
-    float c = (pt.second - ptOrientation.second) / (pt.first - ptOrientation.first);
-    float d = pt.second - c * pt.first;
-    float x = (d - b) / (a - c);
-    float y = a * x + b;
+    float a = (linePoints(0, 1) - linePoints(1, 1))/(linePoints(0, 0) - linePoints(1, 0));
+    float b = linePoints(0, 1) - a*linePoints(0, 0);
+    float c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
+    float d = pt.second - c*pt.first;
+    float x = (d - b)/(a - c);
+    float y = a*x + b;
 
     // Make orientation node
     std::pair<float, float> orientationNode = std::make_pair(x, y);
 
     // Make pair of points that should be connected to the orientation node
-    std::pair<int, int> orientationSegments = std::make_pair(adjacentAngle(0,0), adjacentAngle(1,0));
+    std::pair<int, int> orientationSegments = std::make_pair(adjacentAngle(0, 0), adjacentAngle(1, 0));
 
-    std::pair<std::pair<float, float>, std::pair<int, int>> orientationParameters = std::make_pair(orientationNode, orientationSegments);
+    std::pair<std::pair<float, float>, std::pair<int, int>> orientationParameters = std::make_pair(orientationNode,
+            orientationSegments);
 
     return orientationParameters;
 }
@@ -552,9 +582,9 @@ arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCe
     arma::uvec rowsToRemove(circleCenters.n_rows);
     rowsToRemove.fill(0);
 
-    for (int i = 0; i < circleCenters.n_rows; i++) {
-        point = Vector2(circleCenters(i,1), circleCenters(i,2));
-        if (Field::pointIsInDefenceArea(point, true, 0) || Field::pointIsInDefenceArea(point, false, 0)){
+    for (int i = 0; i < circleCenters.n_rows; i ++) {
+        point = Vector2(circleCenters(i, 1), circleCenters(i, 2));
+        if (Field::pointIsInDefenceArea(point, true, 0) || Field::pointIsInDefenceArea(point, false, 0)) {
             rowsToRemove(i) = 1;
         }
     }
@@ -566,21 +596,21 @@ arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCe
 }
 
 arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCenters) {
-     float width = Field::get_field().field_width; // returns 0
-     float length = Field::get_field().field_length; // returns 0
+    float width = Field::get_field().field_width; // returns 0
+    float length = Field::get_field().field_length; // returns 0
 
     arma::uvec rowsToRemove(circleCenters.n_rows);
     rowsToRemove.fill(0);
 
     arma::Mat<float> fieldEdges;
-    fieldEdges << length/2   << width/2   << arma::endr
-               << -length/2  << width/2   << arma::endr
-               << -length/2  << -width/2  << arma::endr
-               << length/2   << -width/2  << arma::endr;
+    fieldEdges << length/2 << width/2 << arma::endr
+               << - length/2 << width/2 << arma::endr
+               << - length/2 << - width/2 << arma::endr
+               << length/2 << - width/2 << arma::endr;
 
     for (int i = 0; i < circleCenters.n_rows; i ++) {
-        if ((circleCenters(i,1) > fieldEdges(0,0)) || (circleCenters(i,1) < fieldEdges(1,0)) ||
-                (circleCenters(i,2) > fieldEdges(0,1) || (circleCenters(i,2) < fieldEdges(2,1)))) {
+        if ((circleCenters(i, 1) > fieldEdges(0, 0)) || (circleCenters(i, 1) < fieldEdges(1, 0)) ||
+                (circleCenters(i, 2) > fieldEdges(0, 1) || (circleCenters(i, 2) < fieldEdges(2, 1)))) {
             rowsToRemove(i) = 1;
         }
     }
@@ -590,7 +620,25 @@ arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCente
 
     return circleCenters;
 }
+int VoronoiCreator::findClosestPoint(std::pair<float, float> node, arma::Mat<float> circleCenters) {
 
+    arma::Mat<float> distance(circleCenters.n_rows - 2, 2); // center number, distance
+    float x, p, q;
+
+    for (int i = 2; i < circleCenters.n_rows; i ++) {
+        p = node.first - circleCenters(i, 1);
+        q = node.second - circleCenters(i, 2);
+        x = (float) sqrt(pow(p, 2) + pow(q, 2));
+        distance(i - 2, 0) = circleCenters(i, 0);
+        distance(i - 2, 1) = x;
+    }
+
+    std::cout << distance << std::endl;
+    arma::uword index = index_min(distance.col(1));
+    int closestPoint = distance(index, 0);
+
+    return closestPoint;
+}
 
 } // ai
 } // rtt
