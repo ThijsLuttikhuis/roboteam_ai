@@ -495,7 +495,7 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // If the input is the end point, add pi to end point, because the orientation point must inverted
     if (inp == 1) {
-        orientationAngle = orientationAngle + (float) M_PI;
+        orientationAngle = orientationAngle + (float)M_PI;
     }
 
     int p = 0;
@@ -622,19 +622,17 @@ arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCente
 }
 int VoronoiCreator::findClosestPoint(std::pair<float, float> node, arma::Mat<float> circleCenters) {
 
-    arma::Mat<float> distance(circleCenters.n_rows - 2, 2); // center number, distance
+    arma::Mat<float> distance(circleCenters.n_rows - 2, 1); // center number, distance
     float x, p, q;
 
     for (int i = 2; i < circleCenters.n_rows; i ++) {
         p = node.first - circleCenters(i, 1);
         q = node.second - circleCenters(i, 2);
         x = (float) sqrt(pow(p, 2) + pow(q, 2));
-        distance(i - 2, 0) = circleCenters(i, 0);
-        distance(i - 2, 1) = x;
+        distance(i - 2, 0) = x;
     }
 
-    arma::uword index = index_min(distance.col(1));
-    int closestPoint = distance(index, 0);
+    int closestPoint = index_min(distance);
 
     return closestPoint;
 }
