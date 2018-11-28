@@ -576,7 +576,6 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 }
 
 arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCenters) {
-    // Currently doesnt work because the field lines are not generated
 
     Vector2 point;
     arma::uvec rowsToRemove(circleCenters.n_rows);

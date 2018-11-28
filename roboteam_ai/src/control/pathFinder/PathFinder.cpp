@@ -111,6 +111,7 @@ std::vector<Vector2> PathFinder::removeIfOutsideSquare(std::vector<Vector2> obje
 
     std::vector<Vector2> corners;
 
+    // TODO: this could probably be better
     if (endPosition.x > startPosition.x && endPosition.y > startPosition.y) {
         corners.emplace_back(Vector2(endPosition.x + objectMargin, (endPosition.y + objectMargin))); // top right
         corners.emplace_back(Vector2(endPosition.x + objectMargin, endPosition.y - objectMargin - w)); // bottom right
@@ -136,6 +137,7 @@ std::vector<Vector2> PathFinder::removeIfOutsideSquare(std::vector<Vector2> obje
         corners.emplace_back(Vector2(endPosition.x - objectMargin, endPosition.y - objectMargin - w));
     }
 
+    // Filter points that are outside of the square
     int i = 0;
     while (i < objectCoordinatesVector.size()) {
         if ((objectCoordinatesVector[i].x > corners[0].x || // x < top right x = valid
