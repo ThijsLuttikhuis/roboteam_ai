@@ -32,6 +32,8 @@ namespace rtt{
             std::vector<Vector2> velocities;
             std::vector<float> angles;
             double totalTime;
+            std::vector<Vector2> removeIfOutsideSquare(std::vector<Vector2> objectCoordinatesVector,
+                    float objectMargin, float fieldWidth, float fieldLength, Vector2 startPosition, Vector2 endPosition);
         };
     }
 }
