@@ -28,6 +28,6 @@ float ControlUtils::PIDcontroller(float err, ControlUtils::PIDvariables &K) {
     float I = K.kI * err * K.timeDiff; // Integral controller
     float D = K.kD * (err-K.prev_err)/K.timeDiff; // Derivative controller
     K.prev_err = err;
-    return P + I + D;
+    return P + I - D;
 }
 }
