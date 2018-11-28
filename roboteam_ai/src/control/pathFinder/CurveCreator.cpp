@@ -23,6 +23,11 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
     }
     else {
         calculateControlPoints(pathNodes, robotCoordinates, startVelocity, endVelocity);
+        calculateVelocity();
+        if (controlPoints.back() != pathNodes.back()) {
+            endVelocity = 100; // Maximize velocity if not at the end
+        }
+        addVelocityControlPoints(startVelocity, endVelocity);
         convertPointsToCurve();
         calculateVelocity();
         calculateAcceleration();
@@ -63,12 +68,10 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
         }
     }
 
-    if (controlPoints.back() != pathNodes.back()) {
-        endVelocity = FLT_MAX; // Maximize velocity if not at the end
-    }
+
 
     // set initial and final velocity
-    addVelocityControlPoints(startVelocity, endVelocity);
+
 }
 
 std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> convex,

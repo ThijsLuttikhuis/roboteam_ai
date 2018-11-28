@@ -52,6 +52,7 @@ void GoToPosBezier::Initialize() {
         }
     }
 
+    currentDir = robot.angle;
     updateCurveData();
 }
 
@@ -90,20 +91,19 @@ bt::Node::Status GoToPosBezier::Update() {
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
     float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
     float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
-    //float xOutputPID = 0; float yOutputPID = 0;
 
     // Set variables
-    float angularVelocity = 0; //(curve.angles[currentPoint] - (float)currentAngle)/1000;
+    float angularVelocity = 0;
     double xVelocity = xOutputPID + curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
     double yVelocity = yOutputPID + curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
 
-
     // Calculate new curve if at the end
     if (currentPoint == curve.positions.size()-1) {
-        //sendMoveCommand(0,0,0);
+        Vector2 botVel = robot.vel;
+        currentDir = (float)botVel.angle();
         updateCurveData();
     }
 
@@ -201,15 +201,10 @@ void GoToPosBezier::updateCurveData() {
         robotCoordinates.emplace_back(theirBot.pos);
     }
 
-    float startAngle;
-    if (curve.positions.empty()) {
-        startAngle = robot.angle;
-    } else {
-        startAngle = (float)curve.velocities.back().angle();
-    }
+    float startAngle = currentDir;
 
-    startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle = startAngle;
-    endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle = endAngle;
+    startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
+    endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
     pathFinder.calculatePath(targetPos, robot.pos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
@@ -223,9 +218,9 @@ void GoToPosBezier::updateCurveData() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 0.01;
-    K.kI = 0.2;
-    K.kD = 0.01;
+    K.kP = 0.0;
+    K.kI = 0.0;
+    K.kD = 0.0;
     K.timeDiff = 0.016; // 60 Hz?
 }
 
