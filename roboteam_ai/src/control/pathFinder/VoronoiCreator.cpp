@@ -569,6 +569,16 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     x = (d - b)/(a - c);
     y = a*x + b;
 
+    // Put orientation point on field line if it's outside of the field
+    float length = Field::get_field().field_length;
+    float width = Field::get_field().field_width;
+    if (x > length/2 || x < - length/2) {
+        x < 0 ? x = - length/2 : x = length/2;
+    }
+    if (y > width/2 || y < - width/2) {
+        y < 0 ? y = - width/2 : y = width/2;
+    }
+
     // Make orientation node
     std::pair<float, float> orientationNode = std::make_pair(x, y);
 
