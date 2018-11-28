@@ -33,11 +33,11 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     float safetyMargin = 0.3; // m TODO from parameter list; distance between field and field border
     int nSteps = 5; // determines amount of safety points
 
-    float fieldWidthOld = Field::get_field().field_width;
-    float fieldLengthOld = Field::get_field().field_length;
+    float fieldWidth = Field::get_field().field_width;
+    float fieldLength = Field::get_field().field_length;
 
-    float fieldWidth = (float) abs(startPosition.y - endPosition.y);
-    float fieldLength = (float) abs(startPosition.x - endPosition.x);
+//    float fieldWidth = (float) abs(startPosition.y - endPosition.y);
+//    float fieldLength = (float) abs(startPosition.x - endPosition.x);
 
     std::vector<float> xEdges = {- fieldWidth/2 - safetyMargin, fieldWidth/2 + safetyMargin};
     for (float x: xEdges) {
@@ -57,9 +57,9 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     objectCoordinatesVector.insert(objectCoordinatesVector.end(), robotCoordinates.begin(), robotCoordinates.end());
 
     // Remove objects that are outside of the mini-field + safety margin
-    float objectMargin = 1;
-    objectCoordinatesVector = removeIfOutsideSquare(objectCoordinatesVector, objectMargin, fieldWidth, fieldLength,
-            startPosition, endPosition);
+//    float objectMargin = 1;
+//    objectCoordinatesVector = removeIfOutsideSquare(objectCoordinatesVector, objectMargin, fieldWidth, fieldLength,
+//            startPosition, endPosition);
 
     // Change object vector to matrix
     arma::Mat<float> temp;
