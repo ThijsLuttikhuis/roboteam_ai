@@ -89,13 +89,18 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
+    //std::cout << "posError: " << posError << std::endl;
     float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
     float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
 
-    // Set variables
+    //std::cout << "x out PID: " << xOutputPID << std::endl;
+
+    curve.velocities[currentPoint].x += xOutputPID;
+    curve.velocities[currentPoint].y += yOutputPID;
+
     float angularVelocity = 0;
-    double xVelocity = xOutputPID + curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    double yVelocity = yOutputPID + curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+    double yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
@@ -144,8 +149,8 @@ void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, dou
     command.y_vel = (float)yVelocity;
 
     publishRobotCommand(command);
-    std::cerr << "                  xvel: " << command.x_vel << ", yvel: " << command.y_vel << ", w_vel: " << command.w
-              << std::endl;
+    //std::cerr << "                  xvel: " << command.x_vel << ", yvel: " << command.y_vel << ", w_vel: " << command.w
+    //          << std::endl;
 }
 
 /// Check the progress the robot made and alter the currentProgress
@@ -154,7 +159,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.2;                 // max offset or something.
+    double maxMargin = 0.05;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
@@ -218,9 +223,9 @@ void GoToPosBezier::updateCurveData() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 0.0;
+    K.kP = 10.0;
     K.kI = 0.0;
-    K.kD = 0.0;
+    K.kD = 0.05;
     K.timeDiff = 0.016; // 60 Hz?
 }
 
