@@ -107,11 +107,11 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
 
         for (int i = 0; i < circleCenters.n_rows; i ++) {
             if ((int) circleCenters(i, 0) == startOrientationSegments.first ||
-            circleCenters(i, 0) == startOrientationSegments.second) {
+                    circleCenters(i, 0) == startOrientationSegments.second) {
                 s1 = 1;
             }
             else if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
-            circleCenters(i,0) == endOrientationSegments.second) {
+                    circleCenters(i, 0) == endOrientationSegments.second) {
                 s2 = 1;
             }
         }
@@ -137,15 +137,13 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         // Add start orientation segments
-        // TODO: USE ID NUMBERS INSTEAD OR ROW NUMBER
         tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << circleCenters(startOrientationSegments.first, 0) << arma::endr;
+                 << startOrientationSegments.first << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
-        tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << circleCenters(startOrientationSegments.second, 0) << arma::endr;
+                 << startOrientationSegments.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
         // Add end orientation nodes to circleCenters and orientation - end combination to voronoi segments
@@ -159,14 +157,13 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
         circleCenters.insert_rows(circleCenters.n_rows, tempRow);
 
         // Add end orientation segments
-        // TODO: USE ID NUMBERS INSTEAD OR ROW NUMBER
         tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << circleCenters(endOrientationSegments.first, 0) << arma::endr;
+                 << endOrientationSegments.first << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
         tempRow1.reset();
         tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << circleCenters(endOrientationSegments.second, 0) << arma::endr;
+                 << endOrientationSegments.second << arma::endr;
         voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
     }
 
@@ -486,7 +483,6 @@ std::pair<std::pair<float, float>, std::pair<int, int>>
 VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, float orientationAngle,
         arma::Mat<float> circleCenters, const arma::Mat<float> objectCoordinates) {
 
-    // TODO: USE ID NUMBERS INSTEAD OR ROW NUMBER
     std::pair<float, float> pt = std::make_pair(objectCoordinates(inp, 0), objectCoordinates(inp, 1));
 
     arma::Mat<float> temp(1, 2);
@@ -495,7 +491,7 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // If the input is the end point, add pi to end point, because the orientation point must inverted
     if (inp == 1) {
-        orientationAngle = orientationAngle + (float)M_PI;
+        orientationAngle = orientationAngle + (float) M_PI;
     }
 
     int p = 0;
@@ -543,9 +539,21 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
 
     // Determine the coordinates of the points that the orientation vector is pointing in between
+    float xg, yg, xs, ys; // x greater, y greater, x smaller, y smaller
+    for (int i = 0; i < circleCenters.n_rows; i ++) {
+        if (circleCenters(i, 0) == adjacentAngle(0, 0)) {
+            xg = circleCenters(i, 1);
+            yg = circleCenters(i, 2);
+        }
+        else if (circleCenters(i, 0) == adjacentAngle(1, 0)) {
+            xs = circleCenters(i, 1);
+            ys = circleCenters(i, 2);
+        }
+    }
+
     arma::Mat<float> linePoints;
-    linePoints << circleCenters(adjacentAngle(0, 0), 1) << circleCenters(adjacentAngle(0, 0), 2) << arma::endr
-               << circleCenters(adjacentAngle(1, 0), 1) << circleCenters(adjacentAngle(1, 0), 2) << arma::endr;
+    linePoints << xg << yg << arma::endr
+               << xs << ys << arma::endr;
 
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
@@ -556,12 +564,13 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
 
     // Create lines and calculate intersection
     // TODO use lineLineIntersection for this
-    float a = (linePoints(0, 1) - linePoints(1, 1))/(linePoints(0, 0) - linePoints(1, 0));
-    float b = linePoints(0, 1) - a*linePoints(0, 0);
-    float c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
-    float d = pt.second - c*pt.first;
-    float x = (d - b)/(a - c);
-    float y = a*x + b;
+    float a, b, c, d, x, y;
+    a = (linePoints(0, 1) - linePoints(1, 1))/(linePoints(0, 0) - linePoints(1, 0));
+    b = linePoints(0, 1) - a*linePoints(0, 0);
+    c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
+    d = pt.second - c*pt.first;
+    x = (d - b)/(a - c);
+    y = a*x + b;
 
     // Make orientation node
     std::pair<float, float> orientationNode = std::make_pair(x, y);
