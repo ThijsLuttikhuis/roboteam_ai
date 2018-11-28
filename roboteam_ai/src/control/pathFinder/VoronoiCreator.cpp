@@ -2,15 +2,12 @@
 // Created by selina on 10/30/18.
 //
 
-// TODO Make the field length and width not hardcoded
-
 #include "VoronoiCreator.h"
 
 namespace rtt {
 namespace ai {
 
 VoronoiCreator::VoronoiCreator() {
-
 }
 
 // Create Voronoi diagram
