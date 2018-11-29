@@ -449,8 +449,6 @@ arma::Mat<float>
 VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoordinates, arma::Mat<float> circleCenters,
         arma::Mat<int> segments) {
 
-    std::cout << circleCenters << std::endl;
-
     arma::Mat<float> angles;
     arma::Mat<float> temp(1, 2);
     float ptX = objectCoordinates(inp, 0); // x coordinate of the input coordinate (start or end point)
@@ -460,8 +458,6 @@ VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoor
     std::vector<int> indexVec;
     int p = 0;
     int index;
-
-    std::cout << segments << std::endl;
 
     for (int i = 0; i < segments.n_rows; i ++) {
         index = segments(i, 1);
@@ -484,8 +480,6 @@ VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoor
         angles(p, 0) < 0 ? angles(p, 0) = angles(p, 0) + 2*(float) M_PI : angles(p, 0) = angles(p, 0);
         p ++;
     }
-
-    std::cout << angles << std::endl;
 
     return angles;
 }
@@ -548,8 +542,6 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     adjacentAngle.insert_rows(0, greaterAngle.row(indexGreater));
     adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
 
-    std::cout << adjacentAngle << std::endl;
-
     // Determine the coordinates of the points that the orientation vector is pointing in between
     float xg, yg, xs, ys; // x greater, y greater, x smaller, y smaller
     for (int i = 0; i < circleCenters.n_rows; i ++) {
@@ -567,16 +559,12 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     linePoints << xg << yg << arma::endr
                << xs << ys << arma::endr;
 
-    std::cout << linePoints << std::endl;
-
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
     float orientationMargin = 0.01; // random value, can be anything
     float h = orientationMargin*sin(orientationAngle);
     float l = orientationMargin*cos(orientationAngle);
     std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
-
-    std::cout << ptOrientation.first << " " << ptOrientation.second << std::endl;
 
     // Create lines and calculate intersection
     // TODO use lineLineIntersection for this
@@ -585,14 +573,11 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     e == 0 ? e = std::numeric_limits<float>::min() : e = e;
 
     a = (linePoints(0, 1) - linePoints(1, 1))/e;
-    std::cout << (linePoints(0, 0) - linePoints(1, 0)) << std::endl;
     b = linePoints(0, 1) - a*linePoints(0, 0);
     c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
     d = pt.second - c*pt.first;
     x = (d - b)/(a - c);
     y = a*x + b;
-
-    std::cout << x << " " << y << std::endl;
 
     // Put orientation point on field line if it's outside of the field
     float length = Field::get_field().field_length;
