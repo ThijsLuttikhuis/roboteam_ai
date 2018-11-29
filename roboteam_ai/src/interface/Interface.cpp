@@ -41,11 +41,12 @@ Interface::~Interface() {
     TTF_Quit();
 }
 
-void Interface::drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments) {
+void Interface::drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments, std::vector<Vector2> curve) {
     drawField();
     drawRobots();
     drawBall();
     drawVoronoi(voronoiNodes, voronoiSegments);
+    drawCurve(curve);
 
     // render to screen
     SDL_RenderPresent(renderer);
@@ -199,6 +200,16 @@ void Interface::drawCursorPos() {
     fieldY = (cursorY - c::WINDOW_SIZE_Y/2)/factor.y;
     std::string cursorPosStr = "Cursor: { " + std::to_string(fieldX) + ", " + std::to_string(fieldY) + " }";
     drawText(cursorPosStr, 50, 10);
+}
+void Interface::drawCurve(std::vector<Vector2> curve) {
+    SDL_Color pointColor;
+    pointColor.r = 0;
+    pointColor.g = 255;
+    pointColor.b = 0;
+    pointColor.a = 150;
+    for (Vector2 &point : curve) {
+        drawRect(point, 2, 2, pointColor);
+    }
 }
 
 } // interface

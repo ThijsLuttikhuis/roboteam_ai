@@ -25,7 +25,7 @@ class Interface {
     public:
         explicit Interface();
         ~Interface();
-        void drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments);
+        void drawFrame(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments, std::vector<Vector2> curve);
         void drawFrame();
     private:
         void drawField();
@@ -33,6 +33,7 @@ class Interface {
         void drawBall();
         void drawCursorPos();
         void drawVoronoi(arma::Mat<float> &voronoiNodes, arma::Mat<int> &voronoiSegments);
+        void drawCurve(std::vector<Vector2> curve);
         void drawText(std::string text, int x, int y);
         void drawLine(Vector2 p1, Vector2 p2, SDL_Color color);
         void drawRect(Vector2 position, int w, int h, SDL_Color color);

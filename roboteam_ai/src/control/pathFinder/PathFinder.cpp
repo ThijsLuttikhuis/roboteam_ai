@@ -30,7 +30,7 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     objectCoordinatesVector.emplace_back(endPosition);
 
     // Add safety coordinates
-    float safetyMargin = 0.3; // m TODO from parameter list; distance between field and field border
+    float safetyMargin = 0.1; // m TODO from parameter list; distance between field and field border
     int nSteps = 5; // determines amount of safety points
 
     float fieldWidth = Field::get_field().field_width;
@@ -76,9 +76,6 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     clock_t end = clock();
     std::cout << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
 
-    interface::Interface gui;
-    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments);
-
     FindShortestPath shortestPathFinder;
     std::vector<Vector2> path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
             voronoiParameters.segments, startID, endID, objectCoordinatesVector, startAngle, endAngle);
@@ -90,6 +87,10 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     velocities = curveCreator.getCurveVelocities();
     angles = curveCreator.getCurveOrientations();
     totalTime = curveCreator.getTotalTime();
+
+    interface::Interface gui;
+    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
+
 }
 
 std::vector<Vector2> PathFinder::getCurvePoints() {
