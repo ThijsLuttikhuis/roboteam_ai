@@ -100,16 +100,23 @@ bt::Node::Status GoToPosBezier::Update() {
 
     float angularVelocity = 0;
     double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    double yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
 
-    // Calculate new curve if at the end
-    if (currentPoint == curve.positions.size()-1) {
+    // Determine if new curve is needed
+    bool isAtEnd = currentPoint > 0.9*curve.positions.size();
+
+    // Calculate new curve if needed
+    if (isAtEnd || isAnyObstacleAtCurve()) {
+        std::cout << "---------------------\n" << "Create new curve" << std::endl;
         Vector2 botVel = robot.vel;
         currentDir = (float)botVel.angle();
+        std::cout << "Current velocity: " << botVel.length() << std::endl;
         updateCurveData();
+        std::cout << "New velocity: " << curve.velocities[0].length() << std::endl;
+        std::cout << "---------------------" << std::endl;
     }
 
     // Now check the progress we made
@@ -206,7 +213,7 @@ void GoToPosBezier::updateCurveData() {
         robotCoordinates.emplace_back(theirBot.pos);
     }
 
-    float startAngle = currentDir;
+    float startAngle = robot.angle;
 
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
     endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
@@ -227,6 +234,30 @@ void GoToPosBezier::updateCurveData() {
     K.kI = 0.0;
     K.kD = 0.05;
     K.timeDiff = 0.016; // 60 Hz?
+}
+
+bool GoToPosBezier::isAnyObstacleAtCurve() {
+    double margin = 0.18;
+    auto world = World::get_world();
+
+    Vector2 robotPos;
+    for (Vector2 &curvePoint : curve.positions) {
+        for (auto ourBot: world.us) {
+            if (ourBot.id != robot.id) {
+                robotPos = ourBot.pos;
+                if (robotPos.dist(curvePoint) < margin) {
+                    return true;
+                }
+            }
+        }
+        for (auto theirBot: world.them) {
+            robotPos = theirBot.pos;
+            if (robotPos.dist(curvePoint) < margin) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 } // ai
