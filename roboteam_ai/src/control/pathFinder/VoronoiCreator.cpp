@@ -78,8 +78,8 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     circleCenters = removeIfOutOfField(circleCenters);
 
     // Calculate angle between start & end point and their centers on the surrounding polygon
-    arma::Mat<float> anglesStart = angleCalculator(startID, objectCoordinates, circleCenters, voronoiSegments);
-    arma::Mat<float> anglesEnd = angleCalculator(endID, objectCoordinates, circleCenters, voronoiSegments);
+    arma::Mat<float> anglesStart = angleCalculator(startID, objectCoordinates, circleCenters, startEndSegments.first);
+    arma::Mat<float> anglesEnd = angleCalculator(endID, objectCoordinates, circleCenters, startEndSegments.second);
 
     // Remove start/end segments from segment list
     int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
@@ -447,30 +447,45 @@ VoronoiCreator::startEndSegmentCreator(arma::Mat<int> triangleCombinations, arma
 // Calculate angles between the start/end point and the points connected to it
 arma::Mat<float>
 VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoordinates, arma::Mat<float> circleCenters,
-        arma::Mat<int> voronoiSegments) {
+        arma::Mat<int> segments) {
+
+    std::cout << circleCenters << std::endl;
+
     arma::Mat<float> angles;
     arma::Mat<float> temp(1, 2);
     float ptX = objectCoordinates(inp, 0); // x coordinate of the input coordinate (start or end point)
     float ptY = objectCoordinates(inp, 1);
 
+    std::vector<Vector2> polygonCoordinates;
+    std::vector<int> indexVec;
     int p = 0;
-    for (int i = 0; i < voronoiSegments.n_rows; i ++) {
-        if (voronoiSegments(i, 1) == inp) {
-            int index = voronoiSegments(i, 2);
-            float x = circleCenters(index, 1);
-            float y = circleCenters(index, 2);
+    int index;
 
-            float angle = atan((y - ptY)/(x - ptX));
-            temp << angle << index << arma::endr;
+    std::cout << segments << std::endl;
 
-            angles.insert_rows(p, temp);
-
-            // In some cases; pi or 2pi must be added
-            x <= ptX ? angles(p, 0) = angles(p, 0) + (float) M_PI : angles(p, 0) = angles(p, 0);
-            angles(p, 0) < 0 ? angles(p, 0) = angles(p, 0) + 2*(float) M_PI : angles(p, 0) = angles(p, 0);
-            p ++;
+    for (int i = 0; i < segments.n_rows; i ++) {
+        index = segments(i, 1);
+        for (int k = 0; k < circleCenters.n_rows; k ++) {
+            if ((int) circleCenters(k, 0) == index) {
+                polygonCoordinates.emplace_back(Vector2(circleCenters(k,1), circleCenters(k,2)));
+                indexVec.emplace_back(index);
+            }
         }
     }
+
+    for (int i = 0; i < polygonCoordinates.size(); i ++ ) {
+        float angle = (float)atan((polygonCoordinates[i].y - ptY)/(polygonCoordinates[i].x - ptX));
+        temp << angle << indexVec[i] << arma::endr;
+
+        angles.insert_rows(p, temp);
+
+        // In some cases; pi or 2pi must be added
+        polygonCoordinates[i].x <= ptX ? angles(p, 0) = angles(p, 0) + (float) M_PI : angles(p, 0) = angles(p, 0);
+        angles(p, 0) < 0 ? angles(p, 0) = angles(p, 0) + 2*(float) M_PI : angles(p, 0) = angles(p, 0);
+        p ++;
+    }
+
+    std::cout << angles << std::endl;
 
     return angles;
 }
@@ -487,9 +502,7 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     arma::Mat<float> smallerAngle;
 
     // If the input is the end point, add pi to end point, because the orientation point must inverted
-    if (inp == 1) {
-        orientationAngle = orientationAngle + (float) M_PI;
-    }
+    inp == 1 ? orientationAngle = orientationAngle + (float) M_PI : orientationAngle = orientationAngle;
 
     int p = 0;
     int q = 0;
@@ -535,6 +548,8 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     adjacentAngle.insert_rows(0, greaterAngle.row(indexGreater));
     adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
 
+    std::cout << adjacentAngle << std::endl;
+
     // Determine the coordinates of the points that the orientation vector is pointing in between
     float xg, yg, xs, ys; // x greater, y greater, x smaller, y smaller
     for (int i = 0; i < circleCenters.n_rows; i ++) {
@@ -552,6 +567,8 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     linePoints << xg << yg << arma::endr
                << xs << ys << arma::endr;
 
+    std::cout << linePoints << std::endl;
+
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
     float orientationMargin = 0.01; // random value, can be anything
@@ -559,15 +576,23 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     float l = orientationMargin*cos(orientationAngle);
     std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
 
+    std::cout << ptOrientation.first << " " << ptOrientation.second << std::endl;
+
     // Create lines and calculate intersection
     // TODO use lineLineIntersection for this
-    float a, b, c, d, x, y;
-    a = (linePoints(0, 1) - linePoints(1, 1))/(linePoints(0, 0) - linePoints(1, 0));
+    float a, b, c, d, e, x, y;
+    e = (linePoints(0, 0) - linePoints(1, 0));
+    e == 0 ? e = std::numeric_limits<float>::min() : e = e;
+
+    a = (linePoints(0, 1) - linePoints(1, 1))/e;
+    std::cout << (linePoints(0, 0) - linePoints(1, 0)) << std::endl;
     b = linePoints(0, 1) - a*linePoints(0, 0);
     c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
     d = pt.second - c*pt.first;
     x = (d - b)/(a - c);
     y = a*x + b;
+
+    std::cout << x << " " << y << std::endl;
 
     // Put orientation point on field line if it's outside of the field
     float length = Field::get_field().field_length;
