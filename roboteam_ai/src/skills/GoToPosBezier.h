@@ -34,6 +34,7 @@ class GoToPosBezier : public Skill {
         double totalTime;
         control::ControlUtils::PIDvariables K;
         PathFinder pathFinder;
+        float currentDir;
 
         struct Curve {
           std::vector<rtt::Vector2> positions;
