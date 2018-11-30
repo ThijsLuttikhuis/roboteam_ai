@@ -89,7 +89,7 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    //std::cout << "posError: " << posError << std::endl;
+    std::cout << "posError: " << posError << std::endl;
     float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
     float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
 
@@ -98,25 +98,22 @@ bt::Node::Status GoToPosBezier::Update() {
     curve.velocities[currentPoint].x += xOutputPID;
     curve.velocities[currentPoint].y += yOutputPID;
 
-    float angularVelocity = 0;
-    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    auto angularVelocity = curve.angles[currentPoint];
+    // For old grSim:
+//    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+//    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    double xVelocity = curve.velocities[currentPoint].x;
+    double yVelocity = curve.velocities[currentPoint].y;
 
     // Send a move command
     sendMoveCommand(angularVelocity, xVelocity, yVelocity);
 
     // Determine if new curve is needed
-    bool isAtEnd = currentPoint > 0.9*curve.positions.size();
+    bool isAtEnd = currentPoint == curve.positions.size() - 1;
 
     // Calculate new curve if needed
     if (isAtEnd || isAnyObstacleAtCurve()) {
-        std::cout << "---------------------\n" << "Create new curve" << std::endl;
-        Vector2 botVel = robot.vel;
-        currentDir = (float)botVel.angle();
-        std::cout << "Current velocity: " << botVel.length() << std::endl;
         updateCurveData();
-        std::cout << "New velocity: " << curve.velocities[0].length() << std::endl;
-        std::cout << "---------------------" << std::endl;
     }
 
     // Now check the progress we made
@@ -213,6 +210,7 @@ void GoToPosBezier::updateCurveData() {
         robotCoordinates.emplace_back(theirBot.pos);
     }
 
+    //float startAngle = robotVel.x == 0 ? robot.angle : (float)robotVel.angle(); // If robotVel in x-dir is 0, robotVel.angle() will be NaN
     float startAngle = robot.angle;
 
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
@@ -230,9 +228,9 @@ void GoToPosBezier::updateCurveData() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 10.0;
+    K.kP = 30.0;
     K.kI = 0.0;
-    K.kD = 0.05;
+    K.kD = 0.2;
     K.timeDiff = 0.016; // 60 Hz?
 }
 
