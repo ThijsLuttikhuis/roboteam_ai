@@ -36,7 +36,7 @@ namespace rtt {
             void calculateAcceleration();
             void calculateOrientation();
             double factorial(float x);
-            void addVelocityControlPoints(float startVelocity, float endVelocity);
+            void addVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece);
             std::vector<Vector2> createConvexHull();
             bool isObstacleInConvexHull(std::vector<Vector2> polygon, Vector2 obstPos);
 

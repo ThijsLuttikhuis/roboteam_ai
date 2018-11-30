@@ -63,11 +63,8 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
         }
     }
 
-    // set initial and final velocity
-//    if (controlPoints.back() != pathNodes.back()) {
-//        endVelocity = 100; // Maximize velocity if not at the end
-//    }
-    addVelocityControlPoints(startVelocity, endVelocity);
+    bool isEndPiece = controlPoints.back() == pathNodes.back();
+    addVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
 
 }
 
@@ -217,11 +214,12 @@ Vector2 CurveCreator::pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstac
     return pointOnLine;
 }
 
-void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity) {
+void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
     // add two control points to assure the given velocities
     startVelocity *= totalTime;
     endVelocity *= totalTime;
-    auto numControlPoints = controlPoints.size() + 2; // Including velocity control points
+    auto numControlPoints = controlPoints.size() + 1; // Including velocity control points
+    numControlPoints = isEndPiece ? numControlPoints + 1 : numControlPoints;
 
     float startScaleFactor = startVelocity/(numControlPoints - 1);
     startScaleFactor = startScaleFactor > (float) (controlPoints[1] - controlPoints[0]).length()
@@ -229,15 +227,17 @@ void CurveCreator::addVelocityControlPoints(float startVelocity, float endVeloci
     Vector2 startVelCP = controlPoints[0] + (controlPoints[1] - controlPoints[0]).stretchToLength(startScaleFactor);
     controlPoints.insert(controlPoints.begin() + 1, startVelCP);
 
-    float endScaleFactor = endVelocity/(numControlPoints - 1);
-    endScaleFactor = endScaleFactor > (float) (controlPoints[controlPoints.size() - 2]
-            - controlPoints[controlPoints.size() - 1]).length()
-                     ? (float) (controlPoints[controlPoints.size() - 2]
-                    - controlPoints[controlPoints.size() - 1]).length() : endScaleFactor;
-    Vector2 endVelCP = controlPoints.back()
-            + (controlPoints[controlPoints.size() - 2] - controlPoints[controlPoints.size() - 1]).stretchToLength(
-                    endScaleFactor);
-    controlPoints.insert(controlPoints.end() - 1, endVelCP);
+    if (isEndPiece) {
+        float endScaleFactor = endVelocity/(numControlPoints - 1);
+        endScaleFactor = endScaleFactor > (float) (controlPoints[controlPoints.size() - 2]
+                - controlPoints[controlPoints.size() - 1]).length()
+                         ? (float) (controlPoints[controlPoints.size() - 2]
+                        - controlPoints[controlPoints.size() - 1]).length() : endScaleFactor;
+        Vector2 endVelCP = controlPoints.back()
+                + (controlPoints[controlPoints.size() - 2] - controlPoints[controlPoints.size() - 1]).stretchToLength(
+                        endScaleFactor);
+        controlPoints.insert(controlPoints.end() - 1, endVelCP);
+    }
 }
 
 void CurveCreator::convertPointsToCurve() {
