@@ -16,7 +16,7 @@ namespace rtt {
         private:
             // Variables
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
-            float maxVelocity = 1.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
+            float maxVelocity = 1.5; // maximum absolute velocity TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
