@@ -53,7 +53,7 @@ void GoToPosBezier::Initialize() {
     }
 
     currentDir = robot.angle;
-    updateCurveData();
+    updateCurveData(0);
 }
 
 /// Get an update on the skill
@@ -85,7 +85,6 @@ bt::Node::Status GoToPosBezier::Update() {
     timeDif = now - startTime;
     int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
-    double currentAngle = robot.angle;
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
@@ -98,22 +97,23 @@ bt::Node::Status GoToPosBezier::Update() {
     curve.velocities[currentPoint].x += xOutputPID;
     curve.velocities[currentPoint].y += yOutputPID;
 
-    auto angularVelocity = curve.angles[currentPoint];
+    auto desiredAngle = curve.angles[currentPoint];
     // For old grSim:
+//    double currentAngle = robot.angle;
 //    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
 //    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
     double xVelocity = curve.velocities[currentPoint].x;
     double yVelocity = curve.velocities[currentPoint].y;
 
     // Send a move command
-    sendMoveCommand(angularVelocity, xVelocity, yVelocity);
+    sendMoveCommand(desiredAngle, xVelocity, yVelocity);
 
     // Determine if new curve is needed
-    bool isAtEnd = currentPoint == curve.positions.size() - 1;
+    bool isAtEnd = currentPoint >= curve.positions.size() - 1;
 
     // Calculate new curve if needed
     if (isAtEnd || isAnyObstacleAtCurve()) {
-        updateCurveData();
+        updateCurveData(currentPoint);
     }
 
     // Now check the progress we made
@@ -138,7 +138,7 @@ bool GoToPosBezier::checkTargetPos(Vector2 pos) {
 }
 
 /// Send a move robot command with a vector
-void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity) {
+void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double yVelocity) {
     if (! checkTargetPos(targetPos)) {
         ROS_ERROR("Target position is not correct GoToPos");
         return;
@@ -147,7 +147,7 @@ void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, dou
     roboteam_msgs::RobotCommand command;
     command.id = robot.id;
     command.use_angle = 1;
-    command.w = angularVelocity;
+    command.w = desiredAngle;
 
     command.x_vel = (float)xVelocity;
     command.y_vel = (float)yVelocity;
@@ -192,7 +192,7 @@ void GoToPosBezier::Terminate(status s) {
 }
 
 /// Create robot coordinates vector & other parameters for the path
-void GoToPosBezier::updateCurveData() {
+void GoToPosBezier::updateCurveData(int currentPoint) {
     // TODO: don't hardcode end orientation & velocity
     auto endAngle = (float) M_PI;
     float endVelocity = 0;
@@ -215,7 +215,15 @@ void GoToPosBezier::updateCurveData() {
 
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
     endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
-    pathFinder.calculatePath(targetPos, robot.pos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
+
+    Vector2 startPos;
+    if (curve.positions.empty()) {
+        startPos = robot.pos;
+    }
+    else {
+        startPos = curve.positions[currentPoint];
+    }
+    pathFinder.calculatePath(targetPos, startPos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
     curve.positions = pathFinder.getCurvePoints();
@@ -228,10 +236,13 @@ void GoToPosBezier::updateCurveData() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 30.0;
+    K.kP = 35.0;
     K.kI = 0.0;
     K.kD = 0.2;
     K.timeDiff = 0.016; // 60 Hz?
+
+
+    std::cout << "Curve end velocity: " << curve.velocities.back() << std::endl;
 }
 
 bool GoToPosBezier::isAnyObstacleAtCurve() {

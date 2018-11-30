@@ -56,13 +56,13 @@ class GoToPosBezier : public Skill {
 
         bool checkTargetPos(Vector2 pos);
 
-        void sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity);
+        void sendMoveCommand(float desiredAngle, double xVelocity, double yVelocity);
 
         Progression checkProgression();
 
         bool commandSend;
 
-        void updateCurveData();
+        void updateCurveData(int currentPoint);
 
         bool isAnyObstacleAtCurve();
 
