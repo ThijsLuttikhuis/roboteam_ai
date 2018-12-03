@@ -110,9 +110,10 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Determine if new curve is needed
     bool isAtEnd = currentPoint >= curve.positions.size() - 1;
+    bool isErrorTooLarge = posError.length() > 1;
 
     // Calculate new curve if needed
-    if (isAtEnd || isAnyObstacleAtCurve()) {
+    if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
         updateCurveData(currentPoint);
     }
 
@@ -163,7 +164,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.05;                 // max offset or something.
+    double maxMargin = 0.1;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
@@ -241,27 +242,26 @@ void GoToPosBezier::updateCurveData(int currentPoint) {
     K.kD = 0.2;
     K.timeDiff = 0.016; // 60 Hz?
 
-
     std::cout << "Curve end velocity: " << curve.velocities.back() << std::endl;
 }
 
-bool GoToPosBezier::isAnyObstacleAtCurve() {
+bool GoToPosBezier::isAnyObstacleAtCurve(int currentPoint) {
     double margin = 0.18;
     auto world = World::get_world();
 
     Vector2 robotPos;
-    for (Vector2 &curvePoint : curve.positions) {
+    for (int i = currentPoint; i < curve.positions.size(); i++) {
         for (auto ourBot: world.us) {
             if (ourBot.id != robot.id) {
                 robotPos = ourBot.pos;
-                if (robotPos.dist(curvePoint) < margin) {
+                if (robotPos.dist(curve.positions[i]) < margin) {
                     return true;
                 }
             }
         }
         for (auto theirBot: world.them) {
             robotPos = theirBot.pos;
-            if (robotPos.dist(curvePoint) < margin) {
+            if (robotPos.dist(curve.positions[i]) < margin) {
                 return true;
             }
         }

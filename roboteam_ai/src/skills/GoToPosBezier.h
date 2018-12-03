@@ -64,7 +64,7 @@ class GoToPosBezier : public Skill {
 
         void updateCurveData(int currentPoint);
 
-        bool isAnyObstacleAtCurve();
+        bool isAnyObstacleAtCurve(int currentPoint);
 
 };
 } // ai
