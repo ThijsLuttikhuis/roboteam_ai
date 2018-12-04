@@ -14,11 +14,11 @@ namespace ai {
 PathFinder::PathFinder() {
 }
 
-clock_t begin = clock();
-
 void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float endAngle, float startAngle,
         float startVelocity,
         float endVelocity, std::vector<Vector2> robotCoordinates) {
+
+    clock_t begin = clock();
 
     // Set start & end ID: always these values
     int startID = 0;
@@ -73,9 +73,6 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     VoronoiCreator::parameters voronoiParameters = voronoiCreator.createVoronoi(objectCoordinatesMatrix,
             startAngle, endAngle);
 
-    clock_t end = clock();
-    std::cout << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
-
     FindShortestPath shortestPathFinder;
     path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
             voronoiParameters.segments, startID, endID, objectCoordinatesVector, startAngle, endAngle);
@@ -88,9 +85,11 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     angles = curveCreator.getCurveOrientations();
     totalTime = curveCreator.getTotalTime();
 
-    interface::Interface gui;
-    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
+//    interface::Interface gui;
+//    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
 
+    clock_t end = clock();
+    std::cout << "seconds to end: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
 }
 
 std::vector<Vector2> PathFinder::getPath() {
