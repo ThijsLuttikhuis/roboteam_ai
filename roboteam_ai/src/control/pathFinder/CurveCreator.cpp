@@ -146,27 +146,16 @@ std::vector<Vector2> CurveCreator::createConvexHull() {
 bool CurveCreator::isObstacleInConvexHull(std::vector<Vector2> convex, Vector2 obstPos) {
     // Check if the obstacle is in the convex
     float sumOfAngles = 0;
-    // If the sum of angles between obstacle to vertices is 2*PI, the obstacle is inside the polygon.
+    // If the sum of angles between obstacle to vertices is 2*PI, the obstacle center is inside the polygon.
     // Simultaneously, check if the obstacle is on one of the edges.
-    for (int i = 0; i < convex.size(); i ++) {
-        if (i == convex.size() - 1) {
-            sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[0] - obstPos).normalize()));
-
-            // Is obstacle on edge?
-            if (distancePointToLine(obstPos, convex[i], convex[0]) < robotDiameter/2) {
-                return true;
-            }
-        }
-        else {
-            sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i + 1] - obstPos).normalize()));
-
-            // Is obstacle on edge?
-            if (distancePointToLine(obstPos, convex[i], convex[i + 1]) < robotDiameter/2) {
-                return true;
-            }
+    convex.push_back(convex[0]); // Add first point to close convex at the end
+    for (int i = 0; i < convex.size() - 1; i ++) {
+        sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i + 1] - obstPos).normalize()));
+        // Is obstacle on edge?
+        if (distancePointToLine(obstPos, convex[i], convex[i + 1]) < robotDiameter/2) {
+            return true;
         }
     }
-
     return abs(sumOfAngles - 2*M_PI) < 0.002*M_PI; // allow 0.1 percent deviation
 }
 
