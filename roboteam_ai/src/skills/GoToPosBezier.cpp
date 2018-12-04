@@ -117,8 +117,10 @@ bt::Node::Status GoToPosBezier::Update() {
         if (isErrorTooLarge) {
             sendMoveCommand(robot.angle, 0, 0);
         }
+        clock_t begin = clock();
         updateCurveData(currentPoint, isErrorTooLarge);
-        std::cout << "First curve angle: " << curve.angles[0] << std::endl;
+        clock_t end = clock();
+        std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
     }
 
     // Now check the progress we made
@@ -153,7 +155,8 @@ void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double
     command.id = robot.id;
     command.use_angle = 1;
     command.w = desiredAngle;
-    std::cout << "Desired angle: " << desiredAngle << std::endl;
+//    std::cout << "Current angle: " << robot.angle << std::endl;
+//    std::cout << "Desired angle: " << desiredAngle << std::endl;
 
     command.x_vel = (float)xVelocity;
     command.y_vel = (float)yVelocity;
@@ -220,12 +223,12 @@ void GoToPosBezier::updateCurveData(int currentPoint, bool isErrorTooLarge) {
 
     Vector2 startPos = robot.pos;
     float startAngle = robot.angle;
-    if (!curve.positions.empty() && !isErrorTooLarge) {
-        startPos = curve.positions[currentPoint];
-        startAngle = curve.angles[currentPoint];
-    }
+//    if (!curve.positions.empty() && !isErrorTooLarge) {
+//        startPos = curve.positions[currentPoint];
+//        startAngle = curve.angles[currentPoint];
+//    }
 
-    startPos = startPos + robotVel.scale(0.3);
+    startPos = startPos + robotVel.scale(0.08);
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
     endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
 
