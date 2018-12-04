@@ -77,7 +77,7 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     std::cout << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
 
     FindShortestPath shortestPathFinder;
-    std::vector<Vector2> path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
+    path = shortestPathFinder.calculateShortestPath(voronoiParameters.nodes,
             voronoiParameters.segments, startID, endID, objectCoordinatesVector, startAngle, endAngle);
 
     CurveCreator curveCreator;
@@ -91,6 +91,10 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     interface::Interface gui;
     gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
 
+}
+
+std::vector<Vector2> PathFinder::getPath() {
+    return path;
 }
 
 std::vector<Vector2> PathFinder::getCurvePoints() {
