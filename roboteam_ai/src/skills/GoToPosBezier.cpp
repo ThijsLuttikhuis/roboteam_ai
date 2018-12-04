@@ -52,8 +52,7 @@ void GoToPosBezier::Initialize() {
         }
     }
 
-    currentDir = robot.angle;
-    updateCurveData(0);
+    updateCurveData(0, false);
 }
 
 /// Get an update on the skill
@@ -88,7 +87,7 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    std::cout << "posError: " << posError << std::endl;
+    //std::cout << "posError: " << posError << std::endl;
     float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
     float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
 
@@ -111,10 +110,15 @@ bt::Node::Status GoToPosBezier::Update() {
     // Determine if new curve is needed
     bool isAtEnd = currentPoint >= curve.positions.size() - 1;
     bool isErrorTooLarge = posError.length() > 1;
+    bool hasTargetChanged = pathFinder.getPath().back().dist(targetPos) > 0.2;
 
     // Calculate new curve if needed
-    if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
-        updateCurveData(currentPoint);
+    if (isAtEnd || isErrorTooLarge || hasTargetChanged || isAnyObstacleAtCurve(currentPoint)) {
+        if (isErrorTooLarge) {
+            sendMoveCommand(robot.angle, 0, 0);
+        }
+        updateCurveData(currentPoint, isErrorTooLarge);
+        std::cout << "First curve angle: " << curve.angles[0] << std::endl;
     }
 
     // Now check the progress we made
@@ -149,6 +153,7 @@ void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double
     command.id = robot.id;
     command.use_angle = 1;
     command.w = desiredAngle;
+    std::cout << "Desired angle: " << desiredAngle << std::endl;
 
     command.x_vel = (float)xVelocity;
     command.y_vel = (float)yVelocity;
@@ -193,7 +198,7 @@ void GoToPosBezier::Terminate(status s) {
 }
 
 /// Create robot coordinates vector & other parameters for the path
-void GoToPosBezier::updateCurveData(int currentPoint) {
+void GoToPosBezier::updateCurveData(int currentPoint, bool isErrorTooLarge) {
     // TODO: don't hardcode end orientation & velocity
     auto endAngle = (float) M_PI;
     float endVelocity = 0;
@@ -212,18 +217,18 @@ void GoToPosBezier::updateCurveData(int currentPoint) {
     }
 
     //float startAngle = robotVel.x == 0 ? robot.angle : (float)robotVel.angle(); // If robotVel in x-dir is 0, robotVel.angle() will be NaN
-    float startAngle = robot.angle;
 
+    Vector2 startPos = robot.pos;
+    float startAngle = robot.angle;
+    if (!curve.positions.empty() && !isErrorTooLarge) {
+        startPos = curve.positions[currentPoint];
+        startAngle = curve.angles[currentPoint];
+    }
+
+    startPos = startPos + robotVel.scale(0.3);
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
     endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
 
-    Vector2 startPos;
-    if (curve.positions.empty()) {
-        startPos = robot.pos;
-    }
-    else {
-        startPos = curve.positions[currentPoint];
-    }
     pathFinder.calculatePath(targetPos, startPos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
