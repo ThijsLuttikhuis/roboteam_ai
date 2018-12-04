@@ -15,6 +15,7 @@ namespace rtt {
         class CurveCreator {
         private:
             // Variables
+            std::vector<Vector2> objectCoordinates;
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
             float maxVelocity = 1.5; // maximum absolute velocity TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
@@ -26,11 +27,10 @@ namespace rtt {
             double totalTime;
 
                 // Functions
-            std::vector<Vector2> findDangerousObstacle(std::vector<Vector2> trianglePoints,
-                    std::vector<Vector2> robotCoordinates);
+            std::vector<Vector2> findDangerousObstacle(std::vector<Vector2> trianglePoints);
             float distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 linepoint2);
             Vector2 pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos, std::vector<Vector2> linepoints);
-            void calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates, float startVelocity, float endVelocity);
+            void calculateControlPoints(std::vector<Vector2> pathNodes, float startVelocity, float endVelocity);
             void convertPointsToCurve();
             void calculateVelocity();
             void calculateAcceleration();

@@ -19,11 +19,12 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
         float startVelocity, float endVelocity) {
     robotCoordinates.erase(robotCoordinates.begin()); // Delete start point from objects
     robotCoordinates.erase(robotCoordinates.begin()); // Delete end point from objects
+    objectCoordinates = robotCoordinates;
     if (pathNodes.size() < 2) {
         std::cout << "You need to enter at least 2 nodes in order to create a curve." << std::endl;
     }
     else {
-        calculateControlPoints(pathNodes, robotCoordinates, startVelocity, endVelocity);
+        calculateControlPoints(pathNodes, startVelocity, endVelocity);
         convertPointsToCurve();
         calculateVelocity();
         //calculateAcceleration();
@@ -32,8 +33,7 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
 }
 
 /// Calculate the position where the control points of the curve should be
-void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates,
-        float startVelocity, float endVelocity) {
+void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, float startVelocity, float endVelocity) {
     controlPoints.push_back(pathNodes[0]); // First path node is always a control point
     controlPoints.push_back(pathNodes[1]); // Second path node is always a control point
 
@@ -44,7 +44,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
 
         for (int i = 2; i < pathNodes.size() - 1; i ++) {
             convex = createConvexHull();
-            dangerousObstacle = findDangerousObstacle(convex, robotCoordinates);
+            dangerousObstacle = findDangerousObstacle(convex, objectCoordinates);
             if (dangerousObstacle.empty()) {
                 controlPoints.push_back(pathNodes[i] + (pathNodes[i + 1] - pathNodes[i]).scale(
                         1)); // TODO: .scale() could be used to minimize curvature
@@ -56,7 +56,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
                     controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                             (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(0.5);
                     convex = createConvexHull();
-                    dangerousObstacle = findDangerousObstacle(convex, robotCoordinates);
+                    dangerousObstacle = findDangerousObstacle(convex, objectCoordinates);
                 }
                 controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                         (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(1); // TODO: .scale() could be used to minimize curvature
@@ -64,17 +64,14 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
             }
         }
     }
-
     bool isEndPiece = controlPoints.back() == pathNodes.back();
     addVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
-
 }
 
 /// Find dangerous obstacle in control point convex hull, can be empty
-std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> convex,
-        std::vector<Vector2> robotCoordinates) {
+std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> convex) {
     std::vector<Vector2> dangerousObstacle;
-    for (Vector2 &obstaclePos: robotCoordinates) {
+    for (Vector2 &obstaclePos: objectCoordinates) {
         if (isObstacleInConvexHull(convex, obstaclePos)) {
             dangerousObstacle.push_back(obstaclePos);
             break;
