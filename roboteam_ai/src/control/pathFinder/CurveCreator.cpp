@@ -14,6 +14,7 @@ CurveCreator::CurveCreator(float numPoints) {
     this->numPoints = numPoints;
 }
 
+/// Main function, calls functions to create a curve
 void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vector2> robotCoordinates,
         float startVelocity, float endVelocity) {
     robotCoordinates.erase(robotCoordinates.begin()); // Delete start point from objects
@@ -25,11 +26,12 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
         calculateControlPoints(pathNodes, robotCoordinates, startVelocity, endVelocity);
         convertPointsToCurve();
         calculateVelocity();
-        calculateAcceleration();
+        //calculateAcceleration();
         calculateOrientation();
     }
 }
 
+/// Calculate the position where the control points of the curve should be
 void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::vector<Vector2> &robotCoordinates,
         float startVelocity, float endVelocity) {
     controlPoints.push_back(pathNodes[0]); // First path node is always a control point
@@ -68,6 +70,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, std::v
 
 }
 
+/// Find dangerous obstacle in control point convex hull, can be empty
 std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> convex,
         std::vector<Vector2> robotCoordinates) {
     std::vector<Vector2> dangerousObstacle;
@@ -80,8 +83,8 @@ std::vector<Vector2> CurveCreator::findDangerousObstacle(std::vector<Vector2> co
     return dangerousObstacle;
 }
 
+/// Use Graham Scan to turn curve piece into Convex Hull
 std::vector<Vector2> CurveCreator::createConvexHull() {
-    /// Use Graham Scan to turn curve piece into Convex Hull
     // Find point P that has the lowest y-coordinate (or x-coordinate if y is equal)
     Vector2 P(DBL_MAX, DBL_MAX);
     for (Vector2 &point : controlPoints) {
@@ -142,6 +145,7 @@ std::vector<Vector2> CurveCreator::createConvexHull() {
     return convex;
 }
 
+/// Check if an obstacle is in the convex hull
 bool CurveCreator::isObstacleInConvexHull(std::vector<Vector2> convex, Vector2 obstPos) {
     // Check if the obstacle is in the convex
     float sumOfAngles = 0;
@@ -169,6 +173,7 @@ bool CurveCreator::isObstacleInConvexHull(std::vector<Vector2> convex, Vector2 o
     return abs(sumOfAngles - 2*M_PI) < 0.002*M_PI; // allow 0.1 percent deviation
 }
 
+/// Calculate the distance from a point to a line segment between the two end points
 float
 CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 linepoint2) {
     // use vector formulation
@@ -190,32 +195,8 @@ CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 lin
     }
 }
 
-Vector2 CurveCreator::pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos,
-        std::vector<Vector2> linepoints) {
-    Vector2 pointOnLine;
-
-    // Calculate direction vector from startPoint past the obstacle
-    Vector2 startToObstacle = obstaclePos - startPoint;
-    double rotationAngle = asin(0.5*robotDiameter/startToObstacle.length()); // Angle to rotate startToObstacle by
-    Vector2 vectorPastObstacle = startToObstacle.rotate(rotationAngle);
-    if (startToObstacle.dot(linepoints[0] - startPoint) > vectorPastObstacle.dot(linepoints[0] - startPoint)) {
-        // The dot product with the first path line should become greater by rotating, otherwise rotate in the opposite direction
-        vectorPastObstacle = startToObstacle.rotate(- rotationAngle);
-    }
-
-    // Calculate intersection between second path line and vectorPastObstacle
-    Vector2 helpVector = Vector2(vectorPastObstacle.y/vectorPastObstacle.x, - 1);
-    double scaleFactor = (startPoint.dot(helpVector) - linepoints[0].dot(helpVector))
-            /(linepoints[1].dot(helpVector) - linepoints[0].dot(helpVector));
-    if (isnan(scaleFactor) or scaleFactor > 1 or scaleFactor < 0) {
-        scaleFactor = 0;
-    }
-    pointOnLine = linepoints[0] + (linepoints[1] - linepoints[0]).scale(scaleFactor);
-    return pointOnLine;
-}
-
+/// Add control points to the set such that the initial and final velocity demands have been met
 void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
-    // add two control points to assure the given velocities
     startVelocity *= totalTime;
     endVelocity *= totalTime;
     auto numControlPoints = controlPoints.size() + 1; // Including velocity control points
@@ -240,6 +221,7 @@ void CurveCreator::addVelocityControlPoints(float startVelocity, float endVeloci
     }
 }
 
+/// Convert the control points that have been calculated to a set of curve points
 void CurveCreator::convertPointsToCurve() {
     float curveDegree = controlPoints.size() - 1;
 
@@ -260,6 +242,7 @@ void CurveCreator::convertPointsToCurve() {
     }
 }
 
+/// Calculate the curve velocity at each of the curve points
 void CurveCreator::calculateVelocity() {
     float curveDegree = controlPoints.size() - 1;
 
@@ -301,6 +284,29 @@ void CurveCreator::calculateVelocity() {
     std::cout << "Total time: " << totalTime << std::endl;
 }
 
+/// Calculate the orientation at each of the curve points
+void CurveCreator::calculateOrientation() {
+    for (Vector2 &vel: curveVelocities) {
+        curveOrientations.push_back((float) vel.angle());
+    }
+
+    // Fix first point by extrapolation
+    curveOrientations[0] = curveOrientations[1] - (curveOrientations[2] - curveOrientations[1]);
+}
+
+/// Factorial function: result = x!
+double CurveCreator::factorial(float x) {
+    double result = 1;
+    for (int i = 1; i <= x; i += 1) {
+        result *= i;
+    }
+    return result;
+}
+
+/// -------------------------------------
+/// Unused functions that might be useful
+/// -------------------------------------
+/// Calculate the curve acceleration at each of the curve points
 void CurveCreator::calculateAcceleration() {
     float curveDegree = controlPoints.size() - 1;
 
@@ -328,24 +334,32 @@ void CurveCreator::calculateAcceleration() {
             + (curveAccelerations[curveAccelerations.size() - 2] - curveAccelerations[curveAccelerations.size() - 3]);
 }
 
-void CurveCreator::calculateOrientation() {
-    for (Vector2 &vel: curveVelocities) {
-        curveOrientations.push_back((float) vel.angle());
+/// Determine the point on a given line such that the vector from startPoint to this point is tangent to a circular obstacle
+Vector2 CurveCreator::pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos,
+        std::vector<Vector2> linepoints) {
+    Vector2 pointOnLine;
+
+    // Calculate direction vector from startPoint past the obstacle
+    Vector2 startToObstacle = obstaclePos - startPoint;
+    double rotationAngle = asin(0.5*robotDiameter/startToObstacle.length()); // Angle to rotate startToObstacle by
+    Vector2 vectorPastObstacle = startToObstacle.rotate(rotationAngle);
+    if (startToObstacle.dot(linepoints[0] - startPoint) > vectorPastObstacle.dot(linepoints[0] - startPoint)) {
+        // The dot product with the first path line should become greater by rotating, otherwise rotate in the opposite direction
+        vectorPastObstacle = startToObstacle.rotate(- rotationAngle);
     }
 
-    // Fix first point by extrapolation
-    curveOrientations[0] = curveOrientations[1] - (curveOrientations[2] - curveOrientations[1]);
-}
-
-double CurveCreator::factorial(float x) {
-    double result = 1;
-    for (int i = 1; i <= x; i += 1) {
-        result *= i;
+    // Calculate intersection between second path line and vectorPastObstacle
+    Vector2 helpVector = Vector2(vectorPastObstacle.y/vectorPastObstacle.x, - 1);
+    double scaleFactor = (startPoint.dot(helpVector) - linepoints[0].dot(helpVector))
+            /(linepoints[1].dot(helpVector) - linepoints[0].dot(helpVector));
+    if (isnan(scaleFactor) or scaleFactor > 1 or scaleFactor < 0) {
+        scaleFactor = 0;
     }
-    return result;
+    pointOnLine = linepoints[0] + (linepoints[1] - linepoints[0]).scale(scaleFactor);
+    return pointOnLine;
 }
 
-// GETTERS
+/// GETTERS
 const std::vector<Vector2> &CurveCreator::getCurvePositions() const {
     return curvePositions;
 }
