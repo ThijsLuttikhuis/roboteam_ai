@@ -332,6 +332,9 @@ void CurveCreator::calculateOrientation() {
     for (Vector2 &vel: curveVelocities) {
         curveOrientations.push_back((float) vel.angle());
     }
+
+    // Fix first point by extrapolation
+    curveOrientations[0] = curveOrientations[1] - (curveOrientations[2] - curveOrientations[1]);
 }
 
 double CurveCreator::factorial(float x) {
