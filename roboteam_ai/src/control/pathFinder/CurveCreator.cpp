@@ -231,16 +231,16 @@ void CurveCreator::convertPointsToCurve() {
 /// Calculate the curve velocity at each of the curve points
 void CurveCreator::calculateVelocity() {
     float curveDegree = controlPoints.size() - 1;
+    double coefficient;
+    double controlPointWeight; // weight that differs per control point
+    float t; // curve parameter
 
     for (int i = 0; i < numPoints; i ++) {
         curveVelocities.emplace_back(Vector2(0, 0));
     }
-
-    double coefficient;
-    double controlPointWeight;
     for (int i = 0; i <= curveDegree; i ++) {
         controlPointWeight = factorial(curveDegree)/(factorial(i)*factorial(curveDegree - i));
-        float t = 0; // curve parameter
+        t = 0;
         for (int j = 0; j < numPoints; j ++) {
             coefficient = controlPointWeight*(i*pow(t, i - 1)*pow(1 - t, curveDegree - i)
                     - pow(t, i)*(curveDegree - i)*pow(1 - t, curveDegree - i - 1));
@@ -248,26 +248,19 @@ void CurveCreator::calculateVelocity() {
             t += 1/numPoints;
         }
     }
-
     // Fix NAN data by extrapolation
     curveVelocities[0] = curveVelocities[1] + (curveVelocities[1] - curveVelocities[2]);
     curveVelocities.back() = curveVelocities[curveVelocities.size() - 2]
             + (curveVelocities[curveVelocities.size() - 2] - curveVelocities[curveVelocities.size() - 3]);
-
     // Get the highest velocity that will be reached in the curve
     double highestVelocity = 0.0;
     for (const Vector2 &vel : curveVelocities) {
         highestVelocity = (vel.length() > highestVelocity) ? vel.length() : highestVelocity;
     }
-
     totalTime = highestVelocity/maxVelocity;
-    for (int i = 0; i < numPoints; i ++) {
-        curveVelocities[i].x /= totalTime;
-        curveVelocities[i].y /= totalTime;
+    for (Vector2 &vel : curveVelocities) {
+        vel.scale(1/totalTime);
     }
-
-    std::cout << "Highest curve velocity: " << highestVelocity << std::endl;
-    std::cout << "Total time: " << totalTime << std::endl;
 }
 
 /// Calculate the orientation at each of the curve points
