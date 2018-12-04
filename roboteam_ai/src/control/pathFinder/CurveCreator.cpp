@@ -44,7 +44,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, float 
 
         for (int i = 2; i < pathNodes.size() - 1; i ++) {
             convex = createConvexHull();
-            dangerousObstacle = findDangerousObstacle(convex, objectCoordinates);
+            dangerousObstacle = findDangerousObstacle(convex);
             if (dangerousObstacle.empty()) {
                 controlPoints.push_back(pathNodes[i] + (pathNodes[i + 1] - pathNodes[i]).scale(
                         1)); // TODO: .scale() could be used to minimize curvature
@@ -56,7 +56,7 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, float 
                     controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                             (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(0.5);
                     convex = createConvexHull();
-                    dangerousObstacle = findDangerousObstacle(convex, objectCoordinates);
+                    dangerousObstacle = findDangerousObstacle(convex);
                 }
                 controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                         (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(1); // TODO: .scale() could be used to minimize curvature
