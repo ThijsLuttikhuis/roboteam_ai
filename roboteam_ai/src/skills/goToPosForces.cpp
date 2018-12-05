@@ -65,5 +65,11 @@ bt::Node::Status GoToPosForces::update() {
 }
 
 void GoToPosForces::terminate(Status s) { }
+
+bool GoToPosForces::isCollision(Vector2 usPos,Vector2 usVel,Vector2 objPos,Vector2 objVel,double time)
+{
+    Vector2 relVel=objVel-usVel;
+    Vector2 closestPoint
+}
 }
 }
