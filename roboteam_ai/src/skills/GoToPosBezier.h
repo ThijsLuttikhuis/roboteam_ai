@@ -34,7 +34,6 @@ class GoToPosBezier : public Skill {
         double totalTime;
         control::ControlUtils::PIDvariables K;
         PathFinder pathFinder;
-        float currentDir;
 
         struct Curve {
           std::vector<rtt::Vector2> positions;
@@ -56,13 +55,15 @@ class GoToPosBezier : public Skill {
 
         bool checkTargetPos(Vector2 pos);
 
-        void sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity);
+        void sendMoveCommand(float desiredAngle, double xVelocity, double yVelocity);
 
         Progression checkProgression();
 
         bool commandSend;
 
-        void updateCurveData();
+        void updateCurveData(int currentPoint, bool isErrorTooLarge);
+
+        bool isAnyObstacleAtCurve(int currentPoint);
 
 };
 } // ai

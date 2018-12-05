@@ -25,7 +25,7 @@ const int DEFAULT_ROBOT_ID = 1;
 const double MAX_ANGULAR_VELOCITY = 4.0; // rad per second??
 
 // Interface
-const int WINDOW_POS_X = 100;
+const int WINDOW_POS_X = 1500;
 const int WINDOW_POS_Y = 100;
 const int WINDOW_SIZE_X = 800;
 const int WINDOW_SIZE_Y = 600;

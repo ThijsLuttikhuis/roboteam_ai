@@ -52,8 +52,7 @@ void GoToPosBezier::Initialize() {
         }
     }
 
-    currentDir = robot.angle;
-    updateCurveData();
+    updateCurveData(0, false);
 }
 
 /// Get an update on the skill
@@ -85,7 +84,6 @@ bt::Node::Status GoToPosBezier::Update() {
     timeDif = now - startTime;
     int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
-    double currentAngle = robot.angle;
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
@@ -98,18 +96,31 @@ bt::Node::Status GoToPosBezier::Update() {
     curve.velocities[currentPoint].x += xOutputPID;
     curve.velocities[currentPoint].y += yOutputPID;
 
-    float angularVelocity = 0;
-    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-    double yVelocity = curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    auto desiredAngle = curve.angles[currentPoint];
+    // For old grSim:
+//    double currentAngle = robot.angle;
+//    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
+//    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
+    double xVelocity = curve.velocities[currentPoint].x;
+    double yVelocity = curve.velocities[currentPoint].y;
 
     // Send a move command
-    sendMoveCommand(angularVelocity, xVelocity, yVelocity);
+    sendMoveCommand(desiredAngle, xVelocity, yVelocity);
 
-    // Calculate new curve if at the end
-    if (currentPoint == curve.positions.size()-1) {
-        Vector2 botVel = robot.vel;
-        currentDir = (float)botVel.angle();
-        updateCurveData();
+    // Determine if new curve is needed
+    bool isAtEnd = currentPoint >= curve.positions.size() - 1;
+    bool isErrorTooLarge = posError.length() > 1;
+    bool hasTargetChanged = pathFinder.getPath().back().dist(targetPos) > 0.2;
+
+    // Calculate new curve if needed
+    if (isAtEnd || isErrorTooLarge || hasTargetChanged || isAnyObstacleAtCurve(currentPoint)) {
+        if (isErrorTooLarge) {
+            sendMoveCommand(robot.angle, 0, 0);
+        }
+        clock_t begin = clock();
+        updateCurveData(currentPoint, isErrorTooLarge);
+        clock_t end = clock();
+        std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
     }
 
     // Now check the progress we made
@@ -134,7 +145,7 @@ bool GoToPosBezier::checkTargetPos(Vector2 pos) {
 }
 
 /// Send a move robot command with a vector
-void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, double yVelocity) {
+void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double yVelocity) {
     if (! checkTargetPos(targetPos)) {
         ROS_ERROR("Target position is not correct GoToPos");
         return;
@@ -143,7 +154,9 @@ void GoToPosBezier::sendMoveCommand(float angularVelocity, double xVelocity, dou
     roboteam_msgs::RobotCommand command;
     command.id = robot.id;
     command.use_angle = 1;
-    command.w = angularVelocity;
+    command.w = desiredAngle;
+//    std::cout << "Current angle: " << robot.angle << std::endl;
+//    std::cout << "Desired angle: " << desiredAngle << std::endl;
 
     command.x_vel = (float)xVelocity;
     command.y_vel = (float)yVelocity;
@@ -159,7 +172,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.05;                 // max offset or something.
+    double maxMargin = 0.1;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
@@ -188,7 +201,7 @@ void GoToPosBezier::Terminate(status s) {
 }
 
 /// Create robot coordinates vector & other parameters for the path
-void GoToPosBezier::updateCurveData() {
+void GoToPosBezier::updateCurveData(int currentPoint, bool isErrorTooLarge) {
     // TODO: don't hardcode end orientation & velocity
     auto endAngle = (float) M_PI;
     float endVelocity = 0;
@@ -206,11 +219,20 @@ void GoToPosBezier::updateCurveData() {
         robotCoordinates.emplace_back(theirBot.pos);
     }
 
-    float startAngle = currentDir;
+    //float startAngle = robotVel.x == 0 ? robot.angle : (float)robotVel.angle(); // If robotVel in x-dir is 0, robotVel.angle() will be NaN
 
+    Vector2 startPos = robot.pos;
+    float startAngle = robot.angle;
+//    if (!curve.positions.empty() && !isErrorTooLarge) {
+//        startPos = curve.positions[currentPoint];
+//        startAngle = curve.angles[currentPoint];
+//    }
+
+    startPos = startPos + robotVel.scale(0.08);
     startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
     endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
-    pathFinder.calculatePath(targetPos, robot.pos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
+
+    pathFinder.calculatePath(targetPos, startPos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
     /// Get path parameters
     curve.positions = pathFinder.getCurvePoints();
@@ -223,10 +245,36 @@ void GoToPosBezier::updateCurveData() {
 
     /// Set PID values
     K.prev_err = 0;
-    K.kP = 10.0;
+    K.kP = 35.0;
     K.kI = 0.0;
-    K.kD = 0.05;
+    K.kD = 0.2;
     K.timeDiff = 0.016; // 60 Hz?
+
+    std::cout << "Curve end velocity: " << curve.velocities.back() << std::endl;
+}
+
+bool GoToPosBezier::isAnyObstacleAtCurve(int currentPoint) {
+    double margin = 0.18;
+    auto world = World::get_world();
+
+    Vector2 robotPos;
+    for (int i = currentPoint; i < curve.positions.size(); i++) {
+        for (auto ourBot: world.us) {
+            if (ourBot.id != robot.id) {
+                robotPos = ourBot.pos;
+                if (robotPos.dist(curve.positions[i]) < margin) {
+                    return true;
+                }
+            }
+        }
+        for (auto theirBot: world.them) {
+            robotPos = theirBot.pos;
+            if (robotPos.dist(curve.positions[i]) < margin) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 } // ai
