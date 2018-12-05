@@ -31,7 +31,7 @@ class GoToPosBezier : public Skill {
         std::chrono::system_clock::time_point startTime;
         std::chrono::system_clock::time_point now;
         std::chrono::duration<double> timeDif;
-        double totalTime;
+        float totalTime;
         control::ControlUtils::PIDvariables K;
         PathFinder pathFinder;
 

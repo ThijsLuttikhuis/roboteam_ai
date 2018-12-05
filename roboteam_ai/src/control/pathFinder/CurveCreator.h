@@ -24,7 +24,7 @@ namespace rtt {
             std::vector<Vector2> curvePositions;
             std::vector<Vector2> controlPoints;
             float numPoints; // number of curve points
-            double totalTime;
+            float totalTime;
 
                 // Functions
             std::vector<Vector2> findDangerousObstacle(std::vector<Vector2> trianglePoints);
@@ -45,7 +45,7 @@ namespace rtt {
             CurveCreator(float numPoints);
             void createCurve(std::vector<Vector2> pathNodes, std::vector<Vector2> robotCoordinates, float startVelocity, float endVelocity);
 
-            double getTotalTime() const;
+            float getTotalTime() const;
 
             const std::vector<Vector2> &getCurvePositions() const;
 

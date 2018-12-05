@@ -22,7 +22,7 @@ class PathFinder {
         std::vector<Vector2> getCurvePoints();
         std::vector<Vector2> getVelocities();
         std::vector<float> getAngles();
-        double getTotalTime() const;
+        float getTotalTime() const;
 
         void calculatePath(Vector2 endPosition, Vector2 startPosition, float endAngle, float startAngle,
                 float startVelocity,
@@ -35,7 +35,7 @@ class PathFinder {
         std::vector<Vector2> curvePoints;
         std::vector<Vector2> velocities;
         std::vector<float> angles;
-        double totalTime;
+        float totalTime;
         std::vector<Vector2> removeIfOutsideSquare(std::vector<Vector2> objectCoordinatesVector,
                 float objectMargin, float fieldWidth, float fieldLength, Vector2 startPosition, Vector2 endPosition);
 };

@@ -85,7 +85,6 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     angles = curveCreator.getCurveOrientations();
     totalTime = curveCreator.getTotalTime();
 
-//    interface::Interface gui;
     gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
 
     clock_t end = clock();
@@ -107,7 +106,7 @@ std::vector<Vector2> PathFinder::getVelocities() {
 std::vector<float> PathFinder::getAngles() {
     return angles;
 }
-double PathFinder::getTotalTime() const {
+float PathFinder::getTotalTime() const {
     return totalTime;
 }
 std::vector<Vector2> PathFinder::removeIfOutsideSquare(std::vector<Vector2> objectCoordinatesVector,
