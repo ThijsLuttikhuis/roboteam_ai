@@ -55,6 +55,7 @@ class GoToPosLuTh : public Skill {
 
         bool drawInterface;
         bool goToBall;
+        bool goBehindBall;
         bool random;
 
         enum Progression {

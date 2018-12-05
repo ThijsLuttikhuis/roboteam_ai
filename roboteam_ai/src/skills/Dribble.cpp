@@ -85,7 +85,7 @@ void Dribble::initialize() {
         currentProgress = Progression::FAIL;
         return;
     }
-    //TODO: add failchecking if ball does not exist.
+    //TODO: add failchecking if ball does not exist.d
 
     ball = World::getBall();
 

@@ -24,7 +24,6 @@
           "6d3fke44my0fhn3r2": {
             "id": "6d3fke44my0fhn3r2",
             "title": "Repeater",
-            "isRole": false,
             "children": [
               "s6xx3lzfgjtnbuirz"
             ]
@@ -32,7 +31,6 @@
           "s6xx3lzfgjtnbuirz": {
             "id": "s6xx3lzfgjtnbuirz",
             "title": "MemSequence",
-            "isRole": false,
             "children": [
               "pn4tuzpp7sxc8ihtg",
               "mbwjryus4cyn3y9v"
@@ -41,7 +39,6 @@
           "pn4tuzpp7sxc8ihtg": {
             "id": "pn4tuzpp7sxc8ihtg",
             "title": "GoToPos",
-            "isRole": false,
             "properties": {
               "ROLE": "simpleStupidRobot",
               "Position": "{-1, -1}",
@@ -52,7 +49,6 @@
           "mbwjryus4cyn3y9v": {
             "id": "mbwjryus4cyn3y9v",
             "title": "GoToPos",
-            "isRole": false,
             "properties": {
               "ROLE": "simpleStupidRobot",
               "Position": "{1, 1}",
