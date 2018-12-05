@@ -26,9 +26,6 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     std::pair<arma::Mat<float>, arma::Mat<float>> circleParameters = findCircumcircles(triangleCombinations,
             objectCoordinates);
 
-    //arma::Mat<float> circleCenter = circleParameters.first;
-    //arma::Mat<int> triangle = triangleCombinations;
-
     // Make triangles Delaunay
     std::pair<arma::Mat<float>, arma::Mat<int>> delaunayTriangles = delaunayFilter(objectCoordinates,
             circleParameters.first, circleParameters.second, triangleCombinations);
@@ -297,6 +294,7 @@ VoronoiCreator::delaunayFilter(const arma::Mat<float> objectCoordinates, arma::M
         double ccX = circleCenters(i, 0); // circlecenter = cc
         double ccY = circleCenters(i, 1);
 
+        // TODO: use 'don't use corners of triangle to remove rows'
         for (int k = 0; k < objectCoordinates.n_rows; k ++) {
             double ocX = objectCoordinates(k, 0); // objectcoordinate = oc
             double ocY = objectCoordinates(k, 1);
@@ -333,13 +331,10 @@ VoronoiCreator::findAdjacentCenter(arma::Mat<int> triangleCombinations) {
     arma::Mat<int> emptyColumn = arma::conv_to<arma::Mat<int>>::from(temp);
     emptyColumn.fill(INT_MAX);
 
-    for (int i = 0; i < triangleCombinations.n_rows; i ++) {
-        // This is really ugly
-        newCombinations(i, 0) = triangleCombinations(i, 0);
-        newCombinations(i, 1) = triangleCombinations(i, 1);
-        newCombinations(i, 2) = triangleCombinations(i, 2);
-        newCombinations(i, 3) = triangleCombinations(i, 0);
-    }
+    newCombinations(arma::span(0, triangleCombinations.n_rows - 1), arma::span(0, 2)) =
+            triangleCombinations(arma::span(0, triangleCombinations.n_rows - 1), arma::span(0, 2));
+    newCombinations(arma::span(0, triangleCombinations.n_rows - 1), 3) =
+            triangleCombinations(arma::span(0, triangleCombinations.n_rows - 1), 0);
 
     for (int i = 0; i < triangleCombinations.n_rows; i ++) {
         adjacentTriangles(i, 0) = i;
