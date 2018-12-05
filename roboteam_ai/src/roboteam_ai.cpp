@@ -35,20 +35,20 @@ int main(int argc, char* argv[]) {
     std::string currentTree = "DemoStrategy";
 
     // interface
-    rtt::ai::interface::Interface gui;
+    //rtt::ai::interface::Interface gui;
     bool drawInterface = true;
 
     while (ros::ok()) {
         ros::spinOnce();
 
-        if (drawInterface) {
-            SDL_Event event;
-            while(SDL_PollEvent(&event) != 0) {
-                if (event.type == SDL_QUIT) {
-                    return 0;
-                }
-            }
-        }
+//        if (drawInterface) {
+//            SDL_Event event;
+//            while(SDL_PollEvent(&event) != 0) {
+//                if (event.type == SDL_QUIT) {
+//                    return 0;
+//                }
+//            }
+//        }
 
         // make ROS worldstate and geometry data globally accessible
         worldMsg = IOManager.getWorldState();
@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
                 std::cerr << "else" << std::endl;
             }
         }
-        if (drawInterface) {
-            gui.drawFrame();
-        }
+//        if (drawInterface) {
+//            gui.drawFrame();
+//        }
         rate.sleep();
     }
 
