@@ -32,8 +32,9 @@ class GoToPosBezier : public Skill {
         std::chrono::system_clock::time_point now;
         std::chrono::duration<double> timeDif;
         float totalTime;
-        control::ControlUtils::PIDvariables K;
+        control::ControlUtils::PIDvariables pidVarsInitial, pidVarsXPos, pidVarsYPos;
         PathFinder pathFinder;
+        clock_t pidStartTime, pidEndTime;
 
         struct Curve {
           std::vector<rtt::Vector2> positions;

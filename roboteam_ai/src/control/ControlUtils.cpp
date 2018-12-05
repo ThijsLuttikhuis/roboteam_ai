@@ -2,6 +2,7 @@
 // Created by baris on 16/11/18.
 //
 
+#include <iostream>
 #include "math.h"
 
 #include "ControlUtils.h"
@@ -28,6 +29,6 @@ float ControlUtils::PIDcontroller(float err, ControlUtils::PIDvariables &K) {
     float I = K.kI * err * K.timeDiff; // Integral controller
     float D = K.kD * (err-K.prev_err)/K.timeDiff; // Derivative controller
     K.prev_err = err;
-    return P + I - D;
+    return P + I + D;
 }
 }

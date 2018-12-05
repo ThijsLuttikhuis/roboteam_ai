@@ -53,6 +53,23 @@ void GoToPosBezier::Initialize() {
     }
 
     updateCurveData(0, false);
+    /// Set PID values
+    pidVarsInitial.kP = 30.0;
+    pidVarsInitial.kI = 0.1;
+    pidVarsInitial.kD = 0.1;
+    pidVarsInitial.prev_err = 0;
+
+    pidVarsXPos.kP = pidVarsInitial.kP;
+    pidVarsXPos.kI = pidVarsInitial.kI;
+    pidVarsXPos.kD = pidVarsInitial.kD;
+    pidVarsXPos.prev_err = pidVarsInitial.prev_err;
+
+    pidVarsYPos.kP = pidVarsInitial.kP;
+    pidVarsYPos.kI = pidVarsInitial.kI;
+    pidVarsYPos.kD = pidVarsInitial.kD;
+    pidVarsYPos.prev_err = pidVarsInitial.prev_err;
+
+    pidStartTime = clock();
 }
 
 /// Get an update on the skill
@@ -87,9 +104,16 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    //std::cout << "posError: " << posError << std::endl;
-    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, K);
-    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, K);
+    std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
+
+    pidEndTime = clock();
+    pidVarsXPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
+    pidVarsYPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
+    pidStartTime = clock();
+    //std::cout << "time diff: " << K.timeDiff << std::endl;
+    //K.timeDiff = 0.016;
+    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, pidVarsXPos);
+    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, pidVarsYPos);
 
     //std::cout << "x out PID: " << xOutputPID << std::endl;
 
@@ -247,13 +271,6 @@ void GoToPosBezier::updateCurveData(int currentPoint, bool isErrorTooLarge) {
 
     /// Start timer
     startTime = std::chrono::system_clock::now();
-
-    /// Set PID values
-    K.prev_err = 0;
-    K.kP = 35.0;
-    K.kI = 0.0;
-    K.kD = 0.2;
-    K.timeDiff = 0.016; // 60 Hz?
 }
 
 bool GoToPosBezier::isAnyObstacleAtCurve(int currentPoint) {
