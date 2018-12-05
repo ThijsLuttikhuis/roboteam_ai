@@ -29,6 +29,8 @@ class PathFinder {
                 float endVelocity, std::vector<Vector2> robotCoordinates);
 
     private:
+        interface::Interface gui;
+
         std::vector<Vector2> path;
         std::vector<Vector2> curvePoints;
         std::vector<Vector2> velocities;

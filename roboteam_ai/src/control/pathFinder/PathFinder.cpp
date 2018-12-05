@@ -86,10 +86,10 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     totalTime = curveCreator.getTotalTime();
 
 //    interface::Interface gui;
-//    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
+    gui.drawFrame(voronoiParameters.nodes, voronoiParameters.segments, curvePoints);
 
     clock_t end = clock();
-    std::cout << "seconds to end: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
+    //std::cout << "seconds to end: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
 }
 
 std::vector<Vector2> PathFinder::getPath() {
