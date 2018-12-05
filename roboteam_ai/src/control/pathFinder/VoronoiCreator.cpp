@@ -79,87 +79,85 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     arma::Mat<float> anglesEnd = angleCalculator(endID, objectCoordinates, circleCenters, startEndSegments.second);
 
     // Remove start/end segments from segment list
-    int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
-    voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
+//    int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
+//    voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
 
     // Calculate orientation nodes
-    if (! anglesStart.is_empty() || ! anglesEnd.is_empty()) {
-        std::pair<std::pair<float, float>, std::pair<int, int>> startOrientationParameters =
-                orientationNodeCreator(startID, anglesStart, startOrientationAngle, circleCenters, objectCoordinates);
-        std::pair<std::pair<float, float>, std::pair<int, int>> endOrientationParameters =
-                orientationNodeCreator(endID, anglesEnd, endOrientationAngle, circleCenters, objectCoordinates);
+    std::pair<std::pair<float, float>, std::pair<int, int>> startOrientationParameters =
+            orientationNodeCreator(startID, anglesStart, startOrientationAngle, circleCenters, objectCoordinates);
+    std::pair<std::pair<float, float>, std::pair<int, int>> endOrientationParameters =
+            orientationNodeCreator(endID, anglesEnd, endOrientationAngle, circleCenters, objectCoordinates);
 
-        std::pair<float, float> startOrientationNode = startOrientationParameters.first;
-        std::pair<float, float> endOrientationNode = endOrientationParameters.first;
-        std::pair<int, int> startOrientationSegments = startOrientationParameters.second;
-        std::pair<int, int> endOrientationSegments = endOrientationParameters.second;
+    std::pair<float, float> startOrientationNode = startOrientationParameters.first;
+    std::pair<float, float> endOrientationNode = endOrientationParameters.first;
+    std::pair<int, int> startOrientationSegments = startOrientationParameters.second;
+    std::pair<int, int> endOrientationSegments = endOrientationParameters.second;
 
-        // Check if segments are valid
-        // If not, find node closest to the orientation node and make that a segment
-        int s1 = 0;
-        int s2 = 0;
+    // Check if segments are valid
+    // If not, find node closest to the orientation node and make that a segment
+    int s1 = 0;
+    int s2 = 0;
 
-        for (int i = 0; i < circleCenters.n_rows; i ++) {
-            if ((int) circleCenters(i, 0) == startOrientationSegments.first ||
-                    circleCenters(i, 0) == startOrientationSegments.second) {
-                s1 = 1;
-            }
-            else if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
-                    circleCenters(i, 0) == endOrientationSegments.second) {
-                s2 = 1;
-            }
+    for (int i = 0; i < circleCenters.n_rows; i ++) {
+        if ((int) circleCenters(i, 0) == startOrientationSegments.first ||
+                circleCenters(i, 0) == startOrientationSegments.second) {
+            s1 = 1;
         }
-        if (s1 == 0) {
-            startOrientationSegments.first = findClosestPoint(startOrientationNode, circleCenters);
-            startOrientationSegments.second = startOrientationSegments.first;
+        else if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
+                circleCenters(i, 0) == endOrientationSegments.second) {
+            s2 = 1;
         }
-        else if (s2 == 0) {
-            endOrientationSegments.first = findClosestPoint(endOrientationNode, circleCenters);
-            endOrientationSegments.second = endOrientationSegments.first;
-        }
-
-        // Add start orientation nodes to circleCenters and orientation - start combination to voronoi segments
-        // These must never be removed so it needs to happen after the removal of nodes within defence area / outside
-        // of the field
-        arma::Mat<float> tempRow;
-        arma::Mat<int> tempRow1;
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << startID
-                 << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
-        tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << startOrientationNode.first
-                << startOrientationNode.second << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-        circleCenters.insert_rows(circleCenters.n_rows, tempRow);
-
-        // Add start orientation segments
-        tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << startOrientationSegments.first << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << startOrientationSegments.second << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-
-        // Add end orientation nodes to circleCenters and orientation - end combination to voronoi segments
-        tempRow.reset();
-        tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << endID
-                 << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
-        tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << endOrientationNode.first
-                << endOrientationNode.second << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-        circleCenters.insert_rows(circleCenters.n_rows, tempRow);
-
-        // Add end orientation segments
-        tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << endOrientationSegments.first << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
-        tempRow1.reset();
-        tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
-                 << endOrientationSegments.second << arma::endr;
-        voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
     }
+    if (s1 == 0) {
+        startOrientationSegments.first = findClosestPoint(startOrientationNode, circleCenters);
+        startOrientationSegments.second = startOrientationSegments.first;
+    }
+    else if (s2 == 0) {
+        endOrientationSegments.first = findClosestPoint(endOrientationNode, circleCenters);
+        endOrientationSegments.second = endOrientationSegments.first;
+    }
+
+    // Add start orientation nodes to circleCenters and orientation - start combination to voronoi segments
+    // These must never be removed so it needs to happen after the removal of nodes within defence area / outside
+    // of the field
+    arma::Mat<float> tempRow;
+    arma::Mat<int> tempRow1;
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << startID
+             << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
+    tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << startOrientationNode.first
+            << startOrientationNode.second << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
+    circleCenters.insert_rows(circleCenters.n_rows, tempRow);
+
+    // Add start orientation segments
+    tempRow1.reset();
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+             << startOrientationSegments.first << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
+
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+             << startOrientationSegments.second << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
+
+    // Add end orientation nodes to circleCenters and orientation - end combination to voronoi segments
+    tempRow.reset();
+    tempRow1.reset();
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << endID
+             << circleCenters(circleCenters.n_rows - 1, 0) + 1 << arma::endr;
+    tempRow << circleCenters(circleCenters.n_rows - 1, 0) + 1 << endOrientationNode.first
+            << endOrientationNode.second << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
+    circleCenters.insert_rows(circleCenters.n_rows, tempRow);
+
+    // Add end orientation segments
+    tempRow1.reset();
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+             << endOrientationSegments.first << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
+    tempRow1.reset();
+    tempRow1 << voronoiSegments(voronoiSegments.n_rows - 1, 0) + 1 << circleCenters(circleCenters.n_rows - 1, 0)
+             << endOrientationSegments.second << arma::endr;
+    voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
     // Change name for the rest of the calculations
     arma::Mat<float> voronoiNodes = circleCenters;
@@ -418,6 +416,10 @@ VoronoiCreator::startEndSegmentCreator(arma::Mat<int> triangleCombinations, arma
                 tempComb(0, 1) = (int) circleCenters(i, 0) + 2;
                 endComb.insert_rows(p, tempComb);
                 p ++;
+                tempComb(0, 0) = startID;
+                tempComb(0, 1) = (int) circleCenters(i, 0) + 2;
+                startComb.insert_rows(q, tempComb);
+                q ++;
             }
             else {
                 tempComb(0, 0) = startID;
@@ -428,7 +430,7 @@ VoronoiCreator::startEndSegmentCreator(arma::Mat<int> triangleCombinations, arma
         }
         else if (triangleCombinations(i, 0) == endID) {
             tempComb(0, 0) = endID;
-            tempComb(0, 1) = circleCenters(i, 0) + 2;
+            tempComb(0, 1) = (int) circleCenters(i, 0) + 2;
             endComb.insert_rows(p, tempComb);
             p ++;
         }
@@ -458,14 +460,14 @@ VoronoiCreator::angleCalculator(const int inp, const arma::Mat<float> objectCoor
         index = segments(i, 1);
         for (int k = 0; k < circleCenters.n_rows; k ++) {
             if ((int) circleCenters(k, 0) == index) {
-                polygonCoordinates.emplace_back(Vector2(circleCenters(k,1), circleCenters(k,2)));
+                polygonCoordinates.emplace_back(Vector2(circleCenters(k, 1), circleCenters(k, 2)));
                 indexVec.emplace_back(index);
             }
         }
     }
 
-    for (int i = 0; i < polygonCoordinates.size(); i ++ ) {
-        float angle = (float)atan((polygonCoordinates[i].y - ptY)/(polygonCoordinates[i].x - ptX));
+    for (int i = 0; i < polygonCoordinates.size(); i ++) {
+        float angle = (float) atan((polygonCoordinates[i].y - ptY)/(polygonCoordinates[i].x - ptX));
         temp << angle << indexVec[i] << arma::endr;
 
         angles.insert_rows(p, temp);
