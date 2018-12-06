@@ -23,6 +23,15 @@ class ControlUtils {
         static rtt::Vector2 getClosestRobot(rtt::Vector2 &pos, int &id, bool ourTeam, float &t);
         static rtt::Vector2 getClosestRobot(rtt::Vector2 &pos, int &id, bool ourTeam);
         static rtt::Vector2 getClosestRobot(rtt::Vector2 &pos);
+        static float PIDcontroller(float err, PIDvariables &K);
+
+        typedef struct {
+          float kP;
+          float kI;
+          float kD;
+          float prev_err;
+          float timeDiff;
+        } PIDvariables;
 };
 
 }
