@@ -103,16 +103,17 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
                 circleCenters(i, 0) == startOrientationSegments.second) {
             s1 = 1;
         }
-        else if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
+        if ((int) circleCenters(i, 0) == endOrientationSegments.first ||
                 circleCenters(i, 0) == endOrientationSegments.second) {
             s2 = 1;
         }
     }
+
     if (s1 == 0) {
         startOrientationSegments.first = findClosestPoint(startOrientationNode, circleCenters);
         startOrientationSegments.second = startOrientationSegments.first;
     }
-    else if (s2 == 0) {
+    if (s2 == 0) {
         endOrientationSegments.first = findClosestPoint(endOrientationNode, circleCenters);
         endOrientationSegments.second = endOrientationSegments.first;
     }
