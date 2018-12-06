@@ -2,7 +2,7 @@
 // Created by rolf on 03/12/18.
 //
 
-#include "goToPosForces.h"
+#include "GoToPosForces.h"
 namespace rtt {
 namespace ai {
 GoToPosForces::GoToPosForces(rtt::string name, bt::Blackboard::Ptr blackboard)
@@ -13,7 +13,9 @@ std::string GoToPosForces::node_name() {
 
 void GoToPosForces::checkProgression() {
     if (currentProgress==ON_THE_WAY){
-
+        if(deltaPos.length()<0.05){
+            currentProgress=DONE;
+        }
     }
     else if (currentProgress==DONE){return;}
     else if(currentProgress==FAIL){return;}
@@ -61,10 +63,10 @@ bt::Node::Status GoToPosForces::update() {
     }
     world = World::get_world();
     deltaPos=targetPos-robot.pos;
+    checkProgression();
     if (currentProgress==ON_THE_WAY){
         sendMoveCommand();
     }
-    checkProgression();
     switch (currentProgress) {
     case ON_THE_WAY:return Status::Running;
     case DONE: return Status::Success;
@@ -127,7 +129,7 @@ double GoToPosForces::searchDir(double angleOffset) {
             else return right;
         }
         else if (angleOffset < 0) {
-            return searchDir( angleOffset - 0.01*M_PI)
+            return searchDir( angleOffset - 0.01*M_PI);
         }
         else return searchDir(angleOffset + 0.01*M_PI);
     }

@@ -17,7 +17,7 @@ class GoToPosForces : public Skill {
           ON_THE_WAY, DONE, FAIL
         };
         Progression currentProgress;
-        Progression checkProgression();
+        void checkProgression();
         Vector2 targetPos;
         Vector2 deltaPos;
         bool isCollision(Vector2 usPos, Vector2 usVel, Vector2 objPos, Vector2 objVel, double time);
