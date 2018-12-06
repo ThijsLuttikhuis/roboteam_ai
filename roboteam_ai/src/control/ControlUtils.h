@@ -15,6 +15,14 @@ typedef rtt::Vector2 Vector2;
 namespace control {
 class ControlUtils {
     public:
+        typedef struct {
+          float kP;
+          float kI;
+          float kD;
+          float prev_err;
+          float timeDiff;
+        } PIDvariables;
+
         static double calculateAngularVelocity(double robotAngle, double targetAngle);
         static double TriangleArea(Vector2 A,Vector2 B,Vector2 C);
         static bool pointInTriangle(Vector2 PointToCheck,Vector2 TP1, Vector2 TP2, Vector2 TP3);
@@ -24,14 +32,6 @@ class ControlUtils {
         static rtt::Vector2 getClosestRobot(rtt::Vector2 &pos, int &id, bool ourTeam);
         static rtt::Vector2 getClosestRobot(rtt::Vector2 &pos);
         static float PIDcontroller(float err, PIDvariables &K);
-
-        typedef struct {
-          float kP;
-          float kI;
-          float kD;
-          float prev_err;
-          float timeDiff;
-        } PIDvariables;
 };
 
 }
