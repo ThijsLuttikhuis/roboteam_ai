@@ -24,16 +24,20 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
         std::cout << "You need to enter at least 2 nodes in order to create a curve." << std::endl;
     }
     else {
-        calculateControlPoints(pathNodes, startVelocity, endVelocity);
+        calculateControlPoints(pathNodes);
+        bool isEndPiece = controlPoints.back() == pathNodes.back();
+        shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
         convertPointsToCurve();
         calculateVelocity();
+        calculateTotalTime();
+        scaleVelocities();
         //calculateAcceleration();
         calculateOrientation();
     }
 }
 
 /// Calculate the position where the control points of the curve should be
-void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, float startVelocity, float endVelocity) {
+void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes) {
     controlPoints.push_back(pathNodes[0]); // First path node is always a control point
     controlPoints.push_back(pathNodes[1]); // Second path node is always a control point
 
@@ -64,8 +68,6 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes, float 
             }
         }
     }
-    bool isEndPiece = controlPoints.back() == pathNodes.back();
-    addVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
 }
 
 /// Find dangerous obstacle in control point convex hull, can be empty
@@ -182,17 +184,20 @@ CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 lin
 }
 
 /// Add control points to the set such that the initial and final velocity demands have been met
-void CurveCreator::addVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
-    startVelocity *= totalTime;
-    endVelocity *= totalTime;
-    auto numControlPoints = controlPoints.size() + 1; // Including velocity control points
-    numControlPoints = isEndPiece ? numControlPoints + 1 : numControlPoints;
+void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
+    auto numControlPoints = controlPoints.size();
 
     float startScaleFactor = startVelocity/(numControlPoints - 1);
+
+    if (startScaleFactor < 0) {
+        std::cout << "startScaleFactor is smaller than 0" << std::endl;
+    }
+
     startScaleFactor = startScaleFactor > (float) (controlPoints[1] - controlPoints[0]).length()
                        ? (float) (controlPoints[1] - controlPoints[0]).length() : startScaleFactor;
+
     Vector2 startVelCP = controlPoints[0] + (controlPoints[1] - controlPoints[0]).stretchToLength(startScaleFactor);
-    controlPoints.insert(controlPoints.begin() + 1, startVelCP);
+    controlPoints[1] = startVelCP;
 
     if (isEndPiece) {
         float endScaleFactor = endVelocity/(numControlPoints - 1);
@@ -203,7 +208,7 @@ void CurveCreator::addVelocityControlPoints(float startVelocity, float endVeloci
         Vector2 endVelCP = controlPoints.back()
                 + (controlPoints[controlPoints.size() - 2] - controlPoints[controlPoints.size() - 1]).stretchToLength(
                         endScaleFactor);
-        controlPoints.insert(controlPoints.end() - 1, endVelCP);
+        controlPoints[controlPoints.size() - 2] = endVelCP;
     }
 }
 
@@ -252,14 +257,23 @@ void CurveCreator::calculateVelocity() {
     curveVelocities[0] = curveVelocities[1] + (curveVelocities[1] - curveVelocities[2]);
     curveVelocities.back() = curveVelocities[curveVelocities.size() - 2]
             + (curveVelocities[curveVelocities.size() - 2] - curveVelocities[curveVelocities.size() - 3]);
+}
+
+/// Calculate the total time in which the curve can be finished based on maximum velocity
+void CurveCreator::calculateTotalTime() {
     // Get the highest velocity that will be reached in the curve
-    double highestVelocity = 0.0;
+    float highestVelocity = 0.0;
     for (const Vector2 &vel : curveVelocities) {
-        highestVelocity = (vel.length() > highestVelocity) ? vel.length() : highestVelocity;
+        highestVelocity = ((float)vel.length() > highestVelocity) ? (float)vel.length() : highestVelocity;
     }
     totalTime = highestVelocity/maxVelocity;
-    for (Vector2 &vel : curveVelocities) {
-        vel.scale(1/totalTime);
+}
+
+/// Scale velocity to maximum
+void CurveCreator::scaleVelocities() {
+    for (int i = 0; i < curveVelocities.size(); i++) {
+        curveVelocities[i].x /= totalTime;
+        curveVelocities[i].y /= totalTime;
     }
 }
 
@@ -351,7 +365,7 @@ const std::vector<float> &CurveCreator::getCurveOrientations() const {
     return curveOrientations;
 }
 
-double CurveCreator::getTotalTime() const {
+float CurveCreator::getTotalTime() const {
     return totalTime;
 }
 } // ai

@@ -17,7 +17,7 @@ namespace rtt {
             // Variables
             std::vector<Vector2> objectCoordinates;
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
-            float maxVelocity = 1.5; // maximum absolute velocity TODO: Should be pulled from some list with constants
+            float maxVelocity = 2.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
@@ -30,15 +30,17 @@ namespace rtt {
             std::vector<Vector2> findDangerousObstacle(std::vector<Vector2> trianglePoints);
             float distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 linepoint2);
             Vector2 pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos, std::vector<Vector2> linepoints);
-            void calculateControlPoints(std::vector<Vector2> pathNodes, float startVelocity, float endVelocity);
+            void calculateControlPoints(std::vector<Vector2> pathNodes);
             void convertPointsToCurve();
             void calculateVelocity();
             void calculateAcceleration();
             void calculateOrientation();
             double factorial(float x);
-            void addVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece);
+            void shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece);
             std::vector<Vector2> createConvexHull();
             bool isObstacleInConvexHull(std::vector<Vector2> polygon, Vector2 obstPos);
+            void calculateTotalTime();
+            void scaleVelocities();
 
         public:
             CurveCreator();
