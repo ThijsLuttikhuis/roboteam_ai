@@ -11,7 +11,7 @@
 #include "VoronoiCreator.h"
 #include "FindShortestPath.h"
 #include "CurveCreator.h"
-#include "../../interface/Interface.h"
+//#include "../../interface/Interface.h"
 
 namespace rtt {
 namespace ai {
@@ -29,7 +29,7 @@ class PathFinder {
                 float endVelocity, std::vector<Vector2> robotCoordinates);
 
     private:
-        interface::Interface gui;
+        //interface::Interface gui;
 
         std::vector<Vector2> path;
         std::vector<Vector2> curvePoints;

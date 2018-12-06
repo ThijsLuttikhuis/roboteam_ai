@@ -17,10 +17,10 @@ class GoToPosBezier : public Skill {
         using status = bt::Node::Status;
 
     public:
-        Status Update() override;
+        Status update() override;
 
-        void Initialize() override;
-        void Terminate(status s) override;
+        void initialize() override;
+        void terminate(status s) override;
         explicit GoToPosBezier(string name, bt::Blackboard::Ptr blackboard);
 
         std::string node_name() override;

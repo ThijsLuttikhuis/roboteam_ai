@@ -34,7 +34,7 @@ void runBehaviourTrees() {
     // Start running this tree first
     ros::Rate rate(50);
 
-    factory.setCurrentTree("GetBallTestStrategy");
+    factory.setCurrentTree("randomStrategyBezier");
 
     // Main loop
     while (ros::ok()) {

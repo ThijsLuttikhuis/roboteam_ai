@@ -10,11 +10,11 @@ namespace ai {
 // TODO: Make if GrSim, if real robot statement
 
 /// Init GoToPosBezier
-void GoToPosBezier::Initialize() {
+void GoToPosBezier::initialize() {
 
     if (properties->hasString("ROLE")) {
         std::string roleName = properties->getString("ROLE");
-        robotID = (unsigned int) RobotDealer::findRobotForRole(roleName);
+        robotID = (unsigned int) dealer::findRobotForRole(roleName);
         if (World::getRobotForId(robotID, true)) {
             robot = World::getRobotForId(robotID, true).get();
         }
@@ -73,14 +73,10 @@ void GoToPosBezier::Initialize() {
 }
 
 /// Get an update on the skill
-bt::Node::Status GoToPosBezier::Update() {
+bt::Node::Status GoToPosBezier::update() {
 
     if (World::getRobotForId(robotID, true)) {
         robot = World::getRobotForId(robotID, true).get();
-    }
-    else {
-        ROS_ERROR("GoToPos Update -> robot does not exist in world");
-        currentProgress = Progression::INVALID;
     }
 
     if (goToBall) {
@@ -91,9 +87,6 @@ bt::Node::Status GoToPosBezier::Update() {
     // See if the progress is a failure
     if (currentProgress == Progression::FAIL) {
         return status::Failure;
-    }
-    else if (currentProgress == Progression::INVALID) {
-        return status::Invalid;
     }
 
     // Check if the goal point on the curve is reached
@@ -160,7 +153,6 @@ bt::Node::Status GoToPosBezier::Update() {
     case ON_THE_WAY:return status::Running;
     case DONE: return status::Success;
     case FAIL: return status::Failure;
-    case INVALID: return status::Invalid;
     }
 
     return status::Failure;
@@ -215,7 +207,7 @@ std::string GoToPosBezier::node_name() {
     return "GoToPosBezier";
 }
 
-void GoToPosBezier::Terminate(status s) {
+void GoToPosBezier::terminate(status s) {
 
     roboteam_msgs::RobotCommand command;
     command.id = robot.id;

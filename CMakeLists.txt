@@ -174,6 +174,8 @@ set(SKILLS_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPosLuTh.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/Pass.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/Pass.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPosBezier.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/skills/GoToPosBezier.cpp
         )
 
 set(CONDITIONS_SOURCES
@@ -187,6 +189,16 @@ set(CONDITIONS_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsInZone.cpp
         roboteam_ai/src/utilities/StrategyManager.cpp
         roboteam_ai/src/utilities/StrategyManager.h)
+
+set(PATHFINDER_SOURCES
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/VoronoiCreator.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/VoronoiCreator.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/PathFinder.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/PathFinder.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/FindShortestPath.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/FindShortestPath.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurveCreator.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurveCreator.h)
 
 ### SOURCES END ###
 
@@ -233,7 +245,8 @@ add_executable(Roboteam_AI
         ${CONDITIONS_SOURCES}
         ${CONTROL_SOURCES}
         ${TACTIC_SOURCES}
-        ${INTERFACE_SOURCES})
+        ${INTERFACE_SOURCES}
+        ${PATHFINDER_SOURCES})
 
 add_dependencies(Roboteam_AI ${catkin_EXPORTED_TARGETS})
 target_link_libraries(Roboteam_AI ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2TTF_LIBRARY} Qt5::Widgets Qt5::Gui)
@@ -267,6 +280,7 @@ catkin_add_gtest(ai_tests
         ${SKILLS_SOURCES}
         ${CONTROL_SOURCES}
         ${TACTIC_SOURCES}
+        ${PATHFINDER_SOURCES}
         )
 
 target_compile_options(ai_tests PUBLIC --coverage)

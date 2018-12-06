@@ -3,6 +3,7 @@
 //
 
 #include <roboteam_ai/src/skills/GoToPosLuTh.h>
+#include <roboteam_ai/src/skills/GoToPosBezier.h>
 #include "Switches.h"
 
 /**
@@ -15,19 +16,12 @@
 
 
 std::vector<std::string> Switches::tacticJsonFileNames =
-        {"victoryDanceTactic",
-         "randomTactic",
-         "GetBallTestTactic",
-         "DanceTactic",
-         "DanceTactic2",
-         "SimpleTactic"};
+        {
+         "randomTacticBezier"};
 
 std::vector<std::string> Switches::strategyJsonFileNames =
-        {"victoryDanceStrategy",
-         "randomStrategy",
-         "GetBallTestStrategy",
-         "DanceStrategy",
-         "SimpleStrategy"};
+        {
+         "randomStrategyBezier"};
 
 /// If you are touching this either you know what you are doing or you are making a mistake,
 /// have a look around with the names and see if what you made is on the same level as these are
@@ -105,6 +99,9 @@ bt::Node::Ptr Switches::leafSwitch(std::string name, bt::Blackboard::Ptr propert
     }
     else if (name == "HasBall") {
         node = std::make_shared<rtt::ai::HasBall>(name, properties);
+    }
+    else if (name == "GoToPosBezier") {
+        node = std::make_shared<rtt::ai::GoToPosBezier>(name, properties);
     }
     else {
         ROS_ERROR("ERROR: Leaf not found!! using GoToPos..");
