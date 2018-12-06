@@ -46,4 +46,16 @@ double ControlUtils::constrainAngle(double angle) {
     return angle-M_PI;
 
 }
+double ControlUtils::distanceToLineWithEnds(Vec PointToCheck, Vec LineStart, Vec LineEnd) {
+    Vec n=LineEnd-LineStart;
+    Vec pa=LineStart-PointToCheck;
+    Vec c=n * (n.dot(pa)/n.dot(n));
+    Vec d= pa-c;
+    Vec A=(PointToCheck-LineStart).project(LineStart,LineEnd);
+    Vec B=(PointToCheck-LineEnd).project(LineEnd,LineStart);
+    if((A.length()+B.length())>n.length()){
+        return fmin(pa.length(),(LineEnd-PointToCheck).length());
+    }
+    else return d.length();
+}
 }//control

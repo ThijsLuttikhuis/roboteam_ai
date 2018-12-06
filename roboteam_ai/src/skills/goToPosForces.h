@@ -12,12 +12,21 @@ class GoToPosForces : public Skill {
     private:
         using status = bt::Node::Status;
         roboteam_msgs::WorldRobot robot;
+        roboteam_msgs::World world;
         enum Progression {
           ON_THE_WAY, DONE, FAIL
         };
         Progression currentProgress;
         Progression checkProgression();
         Vector2 targetPos;
+        Vector2 deltaPos;
+        bool isCollision(Vector2 usPos, Vector2 usVel, Vector2 objPos, Vector2 objVel, double time);
+        double searchDir(double angleOffset);
+        void sendMoveCommand();
+
+        int lowestcollisioncount;
+        double bestangle;
+
     public:
         explicit GoToPosForces(string name, bt::Blackboard::Ptr blackboard);
         std::string node_name() override;
