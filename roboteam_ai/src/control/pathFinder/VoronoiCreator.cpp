@@ -71,16 +71,16 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     voronoiSegments.insert_cols(0, indexSegments);
 
     // Remove nodes that are in the defence area or outside of the field
-    circleCenters = removeIfInDefenceArea(circleCenters);
-    circleCenters = removeIfOutOfField(circleCenters);
+    circleCenters = removeIfInDefenceArea(circleCenters, startID, endID);
+    circleCenters = removeIfOutOfField(circleCenters, startID, endID);
 
     // Calculate angle between start & end point and their centers on the surrounding polygon
     arma::Mat<float> anglesStart = angleCalculator(startID, objectCoordinates, circleCenters, startEndSegments.first);
     arma::Mat<float> anglesEnd = angleCalculator(endID, objectCoordinates, circleCenters, startEndSegments.second);
 
     // Remove start/end segments from segment list
-//    int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
-//    voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
+    int amountOfRows = startEndSegments.first.n_rows + startEndSegments.second.n_rows;
+    voronoiSegments.shed_rows(voronoiSegments.n_rows - amountOfRows, voronoiSegments.n_rows - 1);
 
     // Calculate orientation nodes
     std::pair<std::pair<float, float>, std::pair<int, int>> startOrientationParameters =
@@ -493,7 +493,8 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     arma::Mat<float> smallerAngle;
 
     // If the input is the end point, add pi to end point, because the orientation point must inverted
-    inp == 1 ? orientationAngle = orientationAngle + (float) M_PI : orientationAngle = orientationAngle;
+    inp == 1 ? orientationAngle = orientationAngle - (float) M_PI : orientationAngle = orientationAngle;
+    orientationAngle < 0 ? orientationAngle = orientationAngle + (float) 2*M_PI : orientationAngle = orientationAngle;
 
     int p = 0;
     int q = 0;
@@ -552,9 +553,8 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
         }
     }
 
-    arma::Mat<float> linePoints;
-    linePoints << xg << yg << arma::endr
-               << xs << ys << arma::endr;
+    std::pair<float, float> linePoint1 = std::make_pair(xg, yg);
+    std::pair<float, float> linePoint2 = std::make_pair(xs, ys);
 
     // Create a point at some distance in front of the start/end point to be able to create a line between
     // this point and the start/end point
@@ -564,30 +564,29 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
 
     // Create lines and calculate intersection
-    // TODO use lineLineIntersection for this
-    float a, b, c, d, e, x, y;
-    e = (linePoints(0, 0) - linePoints(1, 0));
-    e == 0 ? e = std::numeric_limits<float>::min() : e = e;
+    // line 1 = start - ptOrientation
+    // line 2 = linePoints1 - linePoints2
 
-    a = (linePoints(0, 1) - linePoints(1, 1))/e;
-    b = linePoints(0, 1) - a*linePoints(0, 0);
-    c = (pt.second - ptOrientation.second)/(pt.first - ptOrientation.first);
-    d = pt.second - c*pt.first;
-    x = (d - b)/(a - c);
-    y = a*x + b;
+    // Create line 1
+    double a, b, c;
+    lineFromPoints(pt, ptOrientation, a, b, c);
+
+    // Create line 2
+    double e, f, g;
+    lineFromPoints(linePoint1, linePoint2, e, f, g);
+
+    // Calculate orientation node
+    std::pair<float, float> orientationNode = lineLineIntersection(a, b, c, e, f, g);
 
     // Put orientation point on field line if it's outside of the field
     float length = Field::get_field().field_length;
     float width = Field::get_field().field_width;
-    if (x > length/2 || x < - length/2) {
-        x < 0 ? x = - length/2 : x = length/2;
+    if (orientationNode.first > length/2 || orientationNode.first < - length/2) {
+        orientationNode.first < 0 ? orientationNode.first = - length/2 : orientationNode.first = length/2;
     }
-    if (y > width/2 || y < - width/2) {
-        y < 0 ? y = - width/2 : y = width/2;
+    if (orientationNode.second > width/2 || orientationNode.second < - width/2) {
+        orientationNode.second < 0 ? orientationNode.second = - width/2 : orientationNode.second = width/2;
     }
-
-    // Make orientation node
-    std::pair<float, float> orientationNode = std::make_pair(x, y);
 
     // Make pair of points that should be connected to the orientation node
     std::pair<int, int> orientationSegments = std::make_pair(adjacentAngle(0, 0), adjacentAngle(1, 0));
@@ -598,16 +597,18 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     return orientationParameters;
 }
 
-arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCenters) {
+arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCenters, int startID, int endID) {
 
     Vector2 point;
     arma::uvec rowsToRemove(circleCenters.n_rows);
     rowsToRemove.fill(0);
 
     for (int i = 0; i < circleCenters.n_rows; i ++) {
-        point = Vector2(circleCenters(i, 1), circleCenters(i, 2));
-        if (Field::pointIsInDefenceArea(point, true, 0) || Field::pointIsInDefenceArea(point, false, 0)) {
-            rowsToRemove(i) = 1;
+        if (circleCenters(i, 0) != startID && circleCenters(i, 0) != endID) {
+            point = Vector2(circleCenters(i, 1), circleCenters(i, 2));
+            if (Field::pointIsInDefenceArea(point, true, 0) || Field::pointIsInDefenceArea(point, false, 0)) {
+                rowsToRemove(i) = 1;
+            }
         }
     }
 
@@ -617,7 +618,7 @@ arma::Mat<float> VoronoiCreator::removeIfInDefenceArea(arma::Mat<float> circleCe
     return circleCenters;
 }
 
-arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCenters) {
+arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCenters, int startID, int endID) {
     float width = Field::get_field().field_width; // returns 0
     float length = Field::get_field().field_length; // returns 0
 
@@ -631,9 +632,11 @@ arma::Mat<float> VoronoiCreator::removeIfOutOfField(arma::Mat<float> circleCente
                << length/2 << - width/2 << arma::endr;
 
     for (int i = 0; i < circleCenters.n_rows; i ++) {
-        if ((circleCenters(i, 1) > fieldEdges(0, 0)) || (circleCenters(i, 1) < fieldEdges(1, 0)) ||
-                (circleCenters(i, 2) > fieldEdges(0, 1) || (circleCenters(i, 2) < fieldEdges(2, 1)))) {
-            rowsToRemove(i) = 1;
+        if (circleCenters(i, 0) != startID && circleCenters(i, 0) != endID) {
+            if ((circleCenters(i, 1) > fieldEdges(0, 0)) || (circleCenters(i, 1) < fieldEdges(1, 0)) ||
+                    (circleCenters(i, 2) > fieldEdges(0, 1) || (circleCenters(i, 2) < fieldEdges(2, 1)))) {
+                rowsToRemove(i) = 1;
+            }
         }
     }
 
