@@ -43,7 +43,6 @@ void GoToPosLuTh::initialize() {
 
     drawInterface = properties->getBool("drawInterface");
     goToBall = properties->getBool("goToBall");
-    goBehindBall = properties->getBool("goBehindBall");
     random = properties->getBool("random");
 
     if (properties->hasVector2("Position")) {
@@ -70,12 +69,6 @@ GoToPosLuTh::Status GoToPosLuTh::update() {
     if (goToBall) {
         auto ball = World::getBall();
         targetPos = ball.pos;
-    } else if (goBehindBall) {
-        const roboteam_msgs::GeometryFieldSize &field = Field::get_field();
-        auto ball = World::getBall();
-        const double &length = field.field_length;
-        double angle = std::tan(ball.pos.y / (length - ball.pos.x));
-
     } else if (random) {
         const roboteam_msgs::GeometryFieldSize &field = Field::get_field();
         const double &length = field.field_length;

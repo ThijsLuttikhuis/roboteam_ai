@@ -44,10 +44,10 @@ void Rotate::initialize() {
     if (properties->hasDouble("Angle")) {
         targetAngle = properties->getDouble("Angle");
     }
-    else {
-        ROS_ERROR("Rotate Initialize -> No good angle set in properties");
-        currentProgress = Progression::FAIL;
-    }
+//    else {
+//        ROS_ERROR("Rotate Initialize -> No good angle set in properties");
+//        currentProgress = Progression::FAIL;
+//    }
 
 }
 
