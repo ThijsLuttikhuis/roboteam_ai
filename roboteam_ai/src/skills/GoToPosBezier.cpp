@@ -134,23 +134,22 @@ bt::Node::Status GoToPosBezier::Update() {
 
     // Determine if new curve is needed
     bool isAtEnd = currentPoint >= curve.positions.size() - 1;
-    bool isErrorTooLarge = posError.length() > 1;
-    bool hasTargetChanged = pathFinder.getPath().back().dist(targetPos) > 0.2;
+    bool isErrorTooLarge = posError.length() > 0.5;
 
     // Calculate new curve if needed
-    if (isAtEnd || isErrorTooLarge || hasTargetChanged || isAnyObstacleAtCurve(currentPoint)) {
-        if (isErrorTooLarge) {
-            sendMoveCommand(robot.angle, 0, 0);
-        }
-        //clock_t begin = clock();
-        updateCurveData(currentPoint, isErrorTooLarge);
-        //clock_t end = clock();
-        //std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
+        if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
+            if (isErrorTooLarge) {
+                sendMoveCommand(robot.angle, 0, 0);
+            }
+            //clock_t begin = clock();
+            updateCurveData(currentPoint, isErrorTooLarge);
+            //clock_t end = clock();
+            //std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
 
-        std::cout << "------------------------" << std::endl;
-        std::cout << "       NEW CURVE" << std::endl;
-        std::cout << "------------------------" << std::endl;
-    }
+            std::cout << "------------------------" << std::endl;
+            std::cout << "       NEW CURVE" << std::endl;
+            std::cout << "------------------------" << std::endl;
+        }
 
     // Now check the progress we made
     currentProgress = checkProgression();
