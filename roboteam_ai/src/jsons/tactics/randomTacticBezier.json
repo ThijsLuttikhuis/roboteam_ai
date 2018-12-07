@@ -198,7 +198,7 @@
               "ROLE": "random7",
               "Position": "{0,0}",
               "goToPos": "false",
-              "random": "true",
+              "random": "false",
               "goToBall": "true"
             }
           },
