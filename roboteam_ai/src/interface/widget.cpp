@@ -25,6 +25,9 @@ void Visualizer::paintEvent(QPaintEvent* event) {
         drawBall(painter);
         drawRobots(painter);
 
+        bool plotVoronoi = true;
+        drawVoronoi(painter, 3, Drawer::getVoronoiDiagram(plotVoronoi), Qt::blue, Qt::green);
+
         if (showPath) drawDataPoints(painter, Drawer::getGoToPosLuThPoints(selectedRobot.id));
 
     } else {
@@ -200,6 +203,54 @@ void Visualizer::drawDataPoints(QPainter & painter, std::vector<Vector2> points,
     }
 }
 
+void Visualizer::drawVoronoi(QPainter & painter, int pointSize, std::pair<arma::Mat<int>, arma::Mat<float>> voronoiParameters,
+        QColor nodeColor, QColor segmentColor) {
+
+    arma::Mat<int> voronoiSegments= voronoiParameters.first;
+    arma::Mat<float> voronoiNodes = voronoiParameters.second;
+
+//    Vector2 nodePos;
+//    painter.setBrush(nodeColor);
+//
+//    for (int i = 0; i < voronoiNodes.n_rows; i ++) {
+//        nodePos.x = voronoiNodes(i, 1);
+//        nodePos.y = voronoiNodes(i, 2);
+//        Vector2 pointOnScreen = toScreenPosition(nodePos);
+//        painter.drawEllipse(pointOnScreen.x, pointOnScreen.y, pointSize, pointSize);
+//    }
+
+    Vector2 segmentPos1;
+    Vector2 segmentPos2;
+    int nodeID1, nodeID2;
+    painter.setPen(segmentColor);
+    int count;
+
+    for (int i = 0; i < voronoiSegments.n_rows; i ++) {
+        count = 0;
+        nodeID1 = voronoiSegments(i, 1);
+        nodeID2 = voronoiSegments(i, 2);
+
+        for (int j = 0; j < voronoiNodes.n_rows; j ++) {
+            if (voronoiNodes(j, 0) == nodeID1) {
+                segmentPos1.x = voronoiNodes(j, 1);
+                segmentPos1.y = voronoiNodes(j, 2);
+                count ++;
+            }
+            else if (voronoiNodes(j, 0) == nodeID2) {
+                segmentPos2.x = voronoiNodes(j, 1);
+                segmentPos2.y = voronoiNodes(j, 2);
+                count ++;
+            }
+        }
+        if (count == 2) {
+            Vector2 segmentsOnScreen1 = toScreenPosition(segmentPos1);
+            Vector2 segmentsOnScreen2 = toScreenPosition(segmentPos2);
+            painter.drawLine(segmentsOnScreen1.x, segmentsOnScreen1.y, segmentsOnScreen2.x, segmentsOnScreen2.y);
+        }
+    }
+
+}
+
 std::string Visualizer::getTacticNameForRobot(roboteam_msgs::WorldRobot robot) {
     for (auto &robotowner : robotDealer::RobotDealer::getClaimedRobots()) {
         std::set<std::pair<int, std::string>> robots = robotowner.second;
@@ -223,8 +274,6 @@ std::string Visualizer::getRoleNameForRobot(roboteam_msgs::WorldRobot robot) {
     }
     return "";
 }
-
-
 
 void Visualizer::setShowRoles(bool showRoles) {
     this->showRoles = showRoles;

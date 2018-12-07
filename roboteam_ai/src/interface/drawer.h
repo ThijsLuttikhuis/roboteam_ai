@@ -8,6 +8,7 @@
 
 #include <roboteam_utils/Vector2.h>
 #include <iostream>
+#include <armadillo>
 
 namespace rtt {
 namespace ai {
@@ -20,8 +21,12 @@ public:
     static void setGoToPosLuThPoints(int id, std::vector<Vector2> points);
     static std::vector<Vector2> getGoToPosLuThPoints(int id);
 
+    static void setVoronoiDiagram(arma::Mat<int> voronoiSegments, arma::Mat<float> voronoiNodes);
+    static std::pair<arma::Mat<int>, arma::Mat<float>> getVoronoiDiagram(bool plot);
+
 private:
     static std::map<int, std::vector<Vector2>> GoToPosLuThPoints;
+    static std::pair<arma::Mat<int>, arma::Mat<float>> voronoiDiagram;
 };
 
 } // interface

@@ -11,7 +11,7 @@
 #include "VoronoiCreator.h"
 #include "FindShortestPath.h"
 #include "CurveCreator.h"
-//#include "../../interface/Interface.h"
+#include "../../interface/drawer.h"
 
 namespace rtt {
 namespace ai {

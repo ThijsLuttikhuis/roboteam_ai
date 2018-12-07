@@ -12,6 +12,7 @@
 #include "../utilities/Field.h"
 #include "../utilities/World.h"
 #include <QMouseEvent>
+#include <armadillo>
 
 namespace rtt {
 namespace ai {
@@ -46,6 +47,8 @@ private:
     void drawBall(QPainter & painter);
     void drawTacticColorForRobot(QPainter & painter, roboteam_msgs::WorldRobot robot);
     void drawDataPoints(QPainter & painter, std::vector<Vector2> points, int pointSize = 3, QColor color = Qt::green);
+    void drawVoronoi(QPainter & painter, int pointSize, std::pair<arma::Mat<int>, arma::Mat<float>> voronoiParameters,
+            QColor nodeColor = Qt::blue, QColor segmentColor = Qt::green);
 
     // utitlity functions
     std::string getTacticNameForRobot(roboteam_msgs::WorldRobot robot);
