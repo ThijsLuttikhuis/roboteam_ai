@@ -49,6 +49,7 @@ private:
     void drawDataPoints(QPainter & painter, std::vector<Vector2> points, int pointSize = 3, QColor color = Qt::green);
     void drawVoronoi(QPainter & painter, int pointSize, std::pair<arma::Mat<int>, arma::Mat<float>> voronoiParameters,
             QColor nodeColor = Qt::blue, QColor segmentColor = Qt::green);
+    void drawBezier(QPainter & painter, int pointSize, std::vector<Vector2> bezierCurve, QColor curveColor = Qt::white);
 
     // utitlity functions
     std::string getTacticNameForRobot(roboteam_msgs::WorldRobot robot);

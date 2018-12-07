@@ -28,6 +28,9 @@ void Visualizer::paintEvent(QPaintEvent* event) {
         bool plotVoronoi = true;
         drawVoronoi(painter, 3, Drawer::getVoronoiDiagram(plotVoronoi), Qt::blue, Qt::green);
 
+        bool plotCurve = true;
+        drawBezier(painter, 1, Drawer::getBezierCurve(plotCurve), Qt::white);
+
         if (showPath) drawDataPoints(painter, Drawer::getGoToPosLuThPoints(selectedRobot.id));
 
     } else {
@@ -249,6 +252,15 @@ void Visualizer::drawVoronoi(QPainter & painter, int pointSize, std::pair<arma::
         }
     }
 
+}
+
+void Visualizer::drawBezier(QPainter & painter, int pointSize, std::vector<Vector2> bezierCurve, QColor curveColor) {
+
+    painter.setPen(curveColor);
+    for (Vector2 &point : bezierCurve) {
+        Vector2 pointOnScreen = toScreenPosition(point);
+        painter.drawEllipse(pointOnScreen.x, pointOnScreen.y, pointSize, pointSize);
+    }
 }
 
 std::string Visualizer::getTacticNameForRobot(roboteam_msgs::WorldRobot robot) {

@@ -86,6 +86,7 @@ void PathFinder::calculatePath(Vector2 endPosition, Vector2 startPosition, float
     totalTime = curveCreator.getTotalTime();
 
     interface::Drawer::setVoronoiDiagram(voronoiParameters.segments, voronoiParameters.nodes);
+    interface::Drawer::setBezierCurve(curvePoints);
 
     clock_t end = clock();
     //std::cout << "seconds to end: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;

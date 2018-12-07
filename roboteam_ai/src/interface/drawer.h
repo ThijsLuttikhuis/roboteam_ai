@@ -24,9 +24,13 @@ public:
     static void setVoronoiDiagram(arma::Mat<int> voronoiSegments, arma::Mat<float> voronoiNodes);
     static std::pair<arma::Mat<int>, arma::Mat<float>> getVoronoiDiagram(bool plot);
 
+    static void setBezierCurve(std::vector<Vector2> curvePoints);
+    static std::vector<Vector2> getBezierCurve(bool plot);
+
 private:
     static std::map<int, std::vector<Vector2>> GoToPosLuThPoints;
     static std::pair<arma::Mat<int>, arma::Mat<float>> voronoiDiagram;
+    static std::vector<Vector2> bezierCurve;
 };
 
 } // interface
