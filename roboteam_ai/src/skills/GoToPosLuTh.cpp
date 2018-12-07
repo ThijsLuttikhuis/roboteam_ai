@@ -269,4 +269,3 @@ void GoToPosLuTh::drawCross(Vector2 &pos) {
 
 } // ai
 } // rtt
-

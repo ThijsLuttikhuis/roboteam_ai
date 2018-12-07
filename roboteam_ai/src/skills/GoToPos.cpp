@@ -39,8 +39,19 @@ void GoToPos::initialize() {
 
     goToBall = properties->getBool("goToBall");
     goBehindBall = properties->getBool("goBehindBall");
+    random = properties->getBool("random");
 
-    if (properties->hasVector2("Position")) {
+    if (random) {
+        const roboteam_msgs::GeometryFieldSize &field = Field::get_field();
+        const double &length = field.field_length;
+        const double &width = field.field_width;
+        int randomX = std::rand();
+        int randomY = std::rand();
+        targetPos = {randomX*2.32830644e-10*length*2 - length*0.5, randomY*2.32830644e-10*width*2 - width*0.5};
+        random = false;
+    }
+
+    else if (properties->hasVector2("Position")) {
         targetPos = properties->getVector2("Position");
     }
     else {

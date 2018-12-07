@@ -115,7 +115,7 @@ bt::Node::Ptr Switches::leafSwitch(std::string name, bt::Blackboard::Ptr propert
 bt::Node::Ptr Switches::tacticSwitch(std::string name, bt::Blackboard::Ptr properties) {
 
     std::map<std::string, std::map<std::string, robotType>> tactics = {
-            {"randomTactic", {
+            {"randomTacticBezier", {
                     {"random1", robotType::random},
                     {"random2", robotType::random},
                     {"random3", robotType::random},
