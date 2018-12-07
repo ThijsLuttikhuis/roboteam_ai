@@ -5,6 +5,7 @@
 #ifndef ROBOTEAM_AI_GOTOPOSFORCES_H
 #define ROBOTEAM_AI_GOTOPOSFORCES_H
 #include "Skill.h"
+#include "../interface/Interface.h"
 
 namespace rtt{
 namespace ai{
@@ -26,6 +27,9 @@ class GoToPosForces : public Skill {
 
         int lowestcollisioncount;
         double bestangle;
+        bool collision;
+        std::vector<Vector2> displayData;
+        interface::Interface interface;
 
     public:
         explicit GoToPosForces(string name, bt::Blackboard::Ptr blackboard);

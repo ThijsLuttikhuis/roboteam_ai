@@ -31,12 +31,10 @@
           },
           "zkl7lwhnxjxlmiay": {
             "id": "zkl7lwhnxjxlmiay",
-            "title": "Dribble",
+            "title": "GoToPosForces",
             "properties": {
               "ROLE": "victor1",
-              "Position": "{-2,-2}",
-              "maxTicks":"100",
-              "forwardDirection":"false"
+              "Position": "{-3,-3}"
             },
             "location": {
               "x": 271.0,
@@ -45,40 +43,14 @@
           },
           "qggd848t8b7kxxk0": {
             "id": "qggd848t8b7kxxk0",
-            "title": "Dribble",
+            "title": "GoToPosForces",
             "properties": {
             "ROLE": "victor1",
-            "Position": "{0,-1}",
-            "maxTicks":"100",
-            "forwardDirection":"true"
+            "Position": "{-3,3}"
           },
             "location": {
               "x": 413.0,
               "y": 262.0
-            }
-          },
-          "ef4fg5gehb3r9ucvk": {
-            "id": "ef4fg5gehb3r9ucvk",
-            "title": "GoToPosLuTh",
-            "properties": {
-              "ROLE": "victor1",
-              "Position": "{-1, 1}"
-            },
-            "location": {
-              "x": 595.0,
-              "y": 274.0
-            }
-          },
-          "54gq9n20d9yoi7c": {
-            "id": "54gq9n20d9yoi7c",
-            "title": "GoToPosLuTh",
-            "properties": {
-              "ROLE": "victor1",
-              "Position": "{0, -1}"
-            },
-            "location": {
-              "x": 742.0,
-              "y": 273.0
             }
           },
           "rges6sjlxmi99r": {

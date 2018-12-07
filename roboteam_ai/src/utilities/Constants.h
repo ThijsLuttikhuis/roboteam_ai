@@ -27,7 +27,7 @@ const double MAX_BALL_RANGE=0.3; // Could maybe be even less? TODO: needs to be 
 const double DRIBBLE_POSDIF=0.03;
 const float  DRIBBLE_SPEED=0.5;
 
-const double COLLISION_DISTANCE=0.018;//m
+const double COLLISION_DISTANCE=0.18;//m
 const double LOOKAHEAD_TIME=1.0;//seconds
 //Other/multiple usage
 const int DEFAULT_ROBOT_ID = 1;
