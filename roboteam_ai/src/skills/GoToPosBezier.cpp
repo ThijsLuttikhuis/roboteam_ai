@@ -54,9 +54,9 @@ void GoToPosBezier::initialize() {
 
     updateCurveData(0, false);
     /// Set PID values
-    pidVarsInitial.kP = 30.0;
-    pidVarsInitial.kI = 0.1;
-    pidVarsInitial.kD = 0.1;
+    pidVarsInitial.kP = 15.0;
+    pidVarsInitial.kI = 1.0;
+    pidVarsInitial.kD = 1.0;
     pidVarsInitial.prev_err = 0;
 
     pidVarsXPos.kP = pidVarsInitial.kP;
@@ -97,7 +97,8 @@ bt::Node::Status GoToPosBezier::update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
+    //std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
+
 
     pidEndTime = clock();
     pidVarsXPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
@@ -127,10 +128,19 @@ bt::Node::Status GoToPosBezier::update() {
 
     // Determine if new curve is needed
     bool isAtEnd = currentPoint >= curve.positions.size() - 1;
-    bool isErrorTooLarge = posError.length() > 0.5;
+    bool isErrorTooLarge = posError.length() > 1.0;
 
     // Calculate new curve if needed
         if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "       NEW CURVE" << std::endl;
+            std::cout << " Reason: ";
+            if (isAtEnd) {std::cout << "End of curve | ";}
+            if (isErrorTooLarge) {std::cout << "Error too large | ";}
+            if (isAnyObstacleAtCurve(currentPoint)) {std::cout << "Obstacle on curve | ";}
+            std::cout << std::endl;
+            std::cout << "------------------------" << std::endl;
+
             if (isErrorTooLarge) {
                 sendMoveCommand(robot.angle, 0, 0);
             }
@@ -138,14 +148,16 @@ bt::Node::Status GoToPosBezier::update() {
             updateCurveData(currentPoint, isErrorTooLarge);
             //clock_t end = clock();
             //std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
-
-            std::cout << "------------------------" << std::endl;
-            std::cout << "       NEW CURVE" << std::endl;
-            std::cout << "------------------------" << std::endl;
         }
 
     // Now check the progress we made
     currentProgress = checkProgression();
+
+        if (currentProgress == DONE) {
+            curve.velocities.empty();
+            curve.positions.empty();
+            curve.angles.empty();
+        }
 
     switch (currentProgress) {
 
