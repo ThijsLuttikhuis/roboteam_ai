@@ -17,7 +17,8 @@ namespace rtt {
             // Variables
             std::vector<Vector2> objectCoordinates;
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
-            float maxVelocity = 2.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
+            float maxVelocity = 1.5; // maximum absolute velocity TODO: Should be pulled from some list with constants
+            float maxAcceleration = 2.0; // maximum absolute acceleration TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
@@ -41,6 +42,7 @@ namespace rtt {
             bool isObstacleInConvexHull(std::vector<Vector2> polygon, Vector2 obstPos);
             void calculateTotalTime();
             void scaleVelocities();
+            void scaleAcceleration();
 
         public:
             CurveCreator();

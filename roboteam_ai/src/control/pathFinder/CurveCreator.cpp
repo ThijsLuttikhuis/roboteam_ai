@@ -29,9 +29,10 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
         shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
         convertPointsToCurve();
         calculateVelocity();
+        calculateAcceleration();
         calculateTotalTime();
         scaleVelocities();
-        //calculateAcceleration();
+        scaleAcceleration();
         calculateOrientation();
     }
 }
@@ -266,7 +267,16 @@ void CurveCreator::calculateTotalTime() {
     for (const Vector2 &vel : curveVelocities) {
         highestVelocity = ((float)vel.length() > highestVelocity) ? (float)vel.length() : highestVelocity;
     }
-    totalTime = highestVelocity/maxVelocity;
+    float velocityFactor = highestVelocity/maxVelocity; // multiply velocity by this factor to limit it
+
+    // Get the highest acceleration that will be reached in the curve
+    float highestAcceleration = 0.0;
+    for (const Vector2 &acc : curveAccelerations) {
+        highestAcceleration = ((float)acc.length() > highestAcceleration) ? (float)acc.length() : highestAcceleration;
+    }
+    auto accelerationFactor = (float)sqrt(highestAcceleration/maxAcceleration); // multiply acceleration by this factor to limit it
+
+    totalTime = velocityFactor > accelerationFactor ? velocityFactor : accelerationFactor; // Take the greater one to limit both
 }
 
 /// Scale velocity to maximum
@@ -274,6 +284,14 @@ void CurveCreator::scaleVelocities() {
     for (int i = 0; i < curveVelocities.size(); i++) {
         curveVelocities[i].x /= totalTime;
         curveVelocities[i].y /= totalTime;
+    }
+}
+
+/// Scale acceleration to maximum
+void CurveCreator::scaleAcceleration() {
+    for (int i = 0; i < curveAccelerations.size(); i++) {
+        curveAccelerations[i].x /= totalTime*totalTime;
+        curveAccelerations[i].y /= totalTime*totalTime;
     }
 }
 
