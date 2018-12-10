@@ -25,14 +25,11 @@ void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vecto
     }
     else {
         calculateControlPoints(pathNodes);
+        convertPointsToCurve();
+        limitMovement();
         bool isEndPiece = controlPoints.back() == pathNodes.back();
         shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
-        convertPointsToCurve();
-        calculateVelocity();
-        calculateAcceleration();
-        calculateTotalTime();
-        scaleVelocities();
-        scaleAcceleration();
+        limitMovement();
         calculateOrientation();
     }
 }
@@ -68,6 +65,13 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes) {
                 break;
             }
         }
+
+        // Add velocity control points (correct placing is done later by shiftVelocityControlPoints)
+        Vector2 startVelCP = controlPoints[0] + (controlPoints[1] - controlPoints[0]).scale(0.5);
+        Vector2 endVelCP = controlPoints[controlPoints.size() - 2] + (controlPoints[controlPoints.size() - 1] - controlPoints[controlPoints.size() - 2]).scale(0.5);
+
+        controlPoints.insert(controlPoints.begin() + 1, startVelCP);
+        controlPoints.insert(controlPoints.end() - 1, endVelCP);
     }
 }
 
@@ -184,7 +188,7 @@ CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 lin
     }
 }
 
-/// Add control points to the set such that the initial and final velocity demands have been met
+/// Shift control points to the set such that the initial and final velocity demands have been met
 void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
     auto numControlPoints = controlPoints.size();
 
@@ -209,6 +213,7 @@ void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelo
         Vector2 endVelCP = controlPoints.back()
                 + (controlPoints[controlPoints.size() - 2] - controlPoints[controlPoints.size() - 1]).stretchToLength(
                         endScaleFactor);
+
         controlPoints[controlPoints.size() - 2] = endVelCP;
     }
 }
@@ -312,6 +317,15 @@ double CurveCreator::factorial(float x) {
         result *= i;
     }
     return result;
+}
+
+/// Limit velocity and acceleration to specified values
+void CurveCreator::limitMovement() {
+    calculateVelocity();
+    calculateAcceleration();
+    calculateTotalTime();
+    scaleVelocities();
+    scaleAcceleration();
 }
 
 /// -------------------------------------
