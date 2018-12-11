@@ -108,6 +108,8 @@ void Dribble::initialize() {
 Dribble::status Dribble::update() {
     updateRobot();
 
+    if (!robot) return status::Running;
+
     ball = World::getBall(); //TODO: sanity checking if ball is actually there?
 
     if (currentProgress == Progression::FAIL) {
@@ -136,6 +138,7 @@ Dribble::status Dribble::update() {
     }
 }
 void Dribble::terminate(Dribble::status s) {
+    if (!robot) return;
     roboteam_msgs::RobotCommand command;
     command.id = robot->id;
     command.use_angle = 1;

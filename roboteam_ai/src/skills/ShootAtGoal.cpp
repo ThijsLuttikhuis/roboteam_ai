@@ -2,15 +2,15 @@
 // Created by mrlukasbos on 23-10-18.
 //
 
-#include "Kick.h"
+#include "ShootAtGoal.h"
 
 namespace rtt {
 namespace ai {
 
-Kick::Kick(std::string name, bt::Blackboard::Ptr blackboard)
+ShootAtGoal::ShootAtGoal(std::string name, bt::Blackboard::Ptr blackboard)
         :Skill(name, blackboard) { }
 
-void Kick::initialize() {
+void ShootAtGoal::initialize() {
     robot = getRobotFromProperties(properties);
     if (!robot)  {
         currentProgress = Progression::FAIL;
@@ -19,7 +19,7 @@ void Kick::initialize() {
     amountOfCycles = 0;
 }
 
-bt::Node::Status Kick::update() {
+bt::Node::Status ShootAtGoal::update() {
     // Fail if we did not succeed after a number of cycles
     amountOfCycles ++;
     if (amountOfCycles > constants::MAX_KICK_CYCLES) {
@@ -32,7 +32,7 @@ bt::Node::Status Kick::update() {
     return Status::Running;
 }
 
-void Kick::sendKickCommand(double kickVel) {
+void ShootAtGoal::sendKickCommand(double kickVel) {
     roboteam_msgs::RobotCommand command;
     command.id = robot->id;
     command.kicker = (unsigned char) true;

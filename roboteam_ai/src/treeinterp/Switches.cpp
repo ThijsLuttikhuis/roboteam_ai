@@ -91,7 +91,7 @@ bt::Node::Ptr Switches::leafSwitch(std::string name, bt::Blackboard::Ptr propert
         node = std::make_shared<rtt::ai::GoToPos>(name, properties);
     }
     else if (name == "Kick") {
-        node = std::make_shared<rtt::ai::Kick>(name, properties);
+        node = std::make_shared<rtt::ai::ShootAtGoal>(name, properties);
     }
     else if (name == "Halt") {
         node = std::make_shared<rtt::ai::Halt>(name, properties);

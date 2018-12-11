@@ -3,7 +3,7 @@
 // check if the commands are on the robotcommands channel.
 
 #include "ros/ros.h"
-#include "../../src/skills/Kick.h"
+#include "roboteam_ai/src/skills/ShootAtGoal.h"
 #include "../../src/skills/Chip.h"
 
 // anonymous namespace needed to prevent ROS callback function name clashes
@@ -23,7 +23,7 @@ TEST(KickTest, It_sends_proper_robotcommands) {
 
     auto bb = std::make_shared<bt::Blackboard>();
     bb->setInt("ROBOT_ID", 1);
-    rtt::ai::Kick kick("test", bb);
+    rtt::ai::ShootAtGoal kick("test", bb);
     kick.initialize();
 
     EXPECT_EQ(kick.update(), bt::Leaf::Status::Running);
@@ -39,7 +39,7 @@ TEST(KickTest, It_sends_proper_robotcommands) {
     EXPECT_EQ(commands.at(0).kicker_vel, rtt::ai::constants::DEFAULT_KICK_POWER);
 
     bb->setDouble("kickVel", 2);
-    rtt::ai::Kick kick2("test", bb);
+    rtt::ai::ShootAtGoal kick2("test", bb);
     kick2.initialize();
 
     EXPECT_EQ(kick2.update(), bt::Leaf::Status::Running);

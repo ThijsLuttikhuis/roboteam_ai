@@ -11,7 +11,7 @@
 namespace rtt {
 namespace ai {
 
-class Kick : public Skill {
+class ShootAtGoal : public Skill {
     private:
         using status = bt::Node::Status;
         int amountOfCycles{};
@@ -23,7 +23,7 @@ class Kick : public Skill {
         Progression currentProgress;
 
     public:
-        explicit Kick(std::string name = "", bt::Blackboard::Ptr blackboard = nullptr);
+        explicit ShootAtGoal(std::string name = "", bt::Blackboard::Ptr blackboard = nullptr);
         Status update() override;
         void initialize() override;
 };

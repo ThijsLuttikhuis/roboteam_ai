@@ -29,7 +29,7 @@
 #include "../skills/GoToPosLuTh.h"
 #include "../skills/GoToPosLuTh_OLD.h"
 #include "../skills/Halt.h"
-#include "../skills/Kick.h"
+#include "roboteam_ai/src/skills/ShootAtGoal.h"
 #include "../skills/Rotate.h"
 #include "../skills/RotateToAngle.h"
 #include "../skills/GoToPos.h"
