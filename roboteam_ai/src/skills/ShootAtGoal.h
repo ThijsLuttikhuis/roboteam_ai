@@ -16,7 +16,7 @@ class ShootAtGoal : public Skill {
         using status = bt::Node::Status;
         int amountOfCycles{};
     protected:
-        virtual void sendKickCommand(double kickVel);
+        void sendKickCommand(double kickVel);
         enum Progression {
           KICKING, DONE, FAIL
         };

@@ -8,7 +8,9 @@ namespace rtt {
 namespace ai {
 
 ShootAtGoal::ShootAtGoal(std::string name, bt::Blackboard::Ptr blackboard)
-        :Skill(name, blackboard) { }
+        :Skill(std::move(name), std::move(blackboard)) {
+
+}
 
 void ShootAtGoal::initialize() {
     robot = getRobotFromProperties(properties);
@@ -16,6 +18,7 @@ void ShootAtGoal::initialize() {
         currentProgress = Progression::FAIL;
         return;
     }
+
     amountOfCycles = 0;
 }
 
