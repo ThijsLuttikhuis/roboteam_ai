@@ -157,10 +157,12 @@ bool CurveCreator::isObstacleInConvexHull(std::vector<Vector2> convex, Vector2 o
     // Simultaneously, check if the obstacle is on one of the edges.
     convex.push_back(convex[0]); // Add first point to close convex at the end
     for (int i = 0; i < convex.size() - 1; i ++) {
-        sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i + 1] - obstPos).normalize()));
-        // Is obstacle on edge?
-        if (distancePointToLine(obstPos, convex[i], convex[i + 1]) < robotDiameter/2) {
-            return true;
+        if (convex[i] != convex[i + 1]) {
+            sumOfAngles += acos((convex[i] - obstPos).normalize().dot((convex[i + 1] - obstPos).normalize()));
+            // Is obstacle on edge?
+            if (distancePointToLine(obstPos, convex[i], convex[i + 1]) < robotDiameter/2) {
+                return true;
+            }
         }
     }
     return abs(sumOfAngles - 2*M_PI) < 0.002*M_PI; // allow 0.1 percent deviation
