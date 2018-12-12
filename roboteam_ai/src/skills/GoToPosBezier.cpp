@@ -63,11 +63,13 @@ void GoToPosBezier::initialize() {
     pidVarsXPos.kI = pidVarsInitial.kI;
     pidVarsXPos.kD = pidVarsInitial.kD;
     pidVarsXPos.prev_err = pidVarsInitial.prev_err;
+    pidVarsXPos.I = 0;
 
     pidVarsYPos.kP = pidVarsInitial.kP;
     pidVarsYPos.kI = pidVarsInitial.kI;
     pidVarsYPos.kD = pidVarsInitial.kD;
     pidVarsYPos.prev_err = pidVarsInitial.prev_err;
+    pidVarsYPos.I = 0;
 
     pidStartTime = clock();
 }

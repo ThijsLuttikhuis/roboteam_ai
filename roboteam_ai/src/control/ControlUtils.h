@@ -21,6 +21,7 @@ class ControlUtils {
           float kD;
           float prev_err;
           float timeDiff;
+          float I;
         } PIDvariables;
 
         static double calculateAngularVelocity(double robotAngle, double targetAngle);

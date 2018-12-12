@@ -89,10 +89,10 @@ rtt::Vector2 ControlUtils::getClosestRobot(rtt::Vector2 &pos) {
 
 float ControlUtils::PIDcontroller(float err, ControlUtils::PIDvariables &K) {
     float P = K.kP * err; // Proportional controller
-    float I = K.kI * err * K.timeDiff; // Integral controller
+    K.I += K.kI * err * K.timeDiff; // Integral controller
     float D = K.kD * (err-K.prev_err)/K.timeDiff; // Derivative controller
     K.prev_err = err;
-    return P + I + D;
+    return P + K.I + D;
 }
 
 } // control
