@@ -275,7 +275,9 @@ bool GoToPosBezier::isAnyObstacleAtCurve(int currentPoint) {
     auto world = World::get_world();
 
     Vector2 robotPos;
-    for (int i = currentPoint; i < curve.positions.size(); i++) {
+    double maxCurveIndex = currentPoint + curve.positions.size() * (1.0/totalTime); // Foresee collision max 1.0 s in the future
+    maxCurveIndex = maxCurveIndex > curve.positions.size() ? curve.positions.size() : maxCurveIndex;
+    for (int i = currentPoint; i < maxCurveIndex; i++) {
         for (auto ourBot: world.us) {
             if (ourBot.id != robot.id) {
                 robotPos = ourBot.pos;
