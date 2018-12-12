@@ -2,6 +2,7 @@
 // Created by simen on 30/10/18.
 //
 
+#include <roboteam_ai/src/utilities/World.h>
 #include "FindShortestPath.h"
 
 namespace rtt {
@@ -150,6 +151,7 @@ namespace rtt {
             float orientationFactor = 100; // TODO: Should be optimized
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
             float normalDist = 2*robotDiameter; // normalized distance from object to line. Weight will be 2 at this distance.
+            auto world = World::get_world();
 
             if (parentID == startID) {
                 // Segment is connected to start node
@@ -170,8 +172,13 @@ namespace rtt {
             // Segment is neither connected to the start node nor the end node
             rtt::Vector2 linepoint1 = nodes[findIndex(parentID)].pos;
             rtt::Vector2 linepoint2 = nodes[findIndex(childID)].pos;
+            rtt::Vector2 objectPos;
+            rtt::Vector2 objectVel;
             std::vector<float> distances;
-            for (rtt::Vector2 objectPos: robotCoordinates) {
+            for (auto &robot : world.us) {
+                objectVel = robot.vel;
+                objectPos = robot.pos;
+                objectPos = objectPos + objectVel.scale(0.5); // take robotPos over 0.5s
                 distances.push_back(distancePointToLine(objectPos, linepoint1, linepoint2));
             }
             float minDistance = *std::min_element(distances.begin(), distances.end());
