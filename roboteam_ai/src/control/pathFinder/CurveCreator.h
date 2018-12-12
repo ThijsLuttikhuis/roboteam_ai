@@ -18,7 +18,7 @@ namespace rtt {
             std::vector<Vector2> objectCoordinates;
             float robotDiameter = 0.18; // TODO: Should be pulled from some list with constants
             float maxVelocity = 5.0; // maximum absolute velocity TODO: Should be pulled from some list with constants
-            float maxAcceleration = 2.0; // maximum absolute acceleration TODO: Should be pulled from some list with constants
+            float maxAcceleration = 3.0; // maximum absolute acceleration TODO: Should be pulled from some list with constants
             std::vector<Vector2> curveAccelerations;
             std::vector<Vector2> curveVelocities;
             std::vector<float> curveOrientations;
