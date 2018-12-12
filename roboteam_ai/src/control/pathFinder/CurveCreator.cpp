@@ -250,6 +250,7 @@ void CurveCreator::calculateVelocity() {
     double controlPointWeight; // weight that differs per control point
     float t; // curve parameter
 
+    curveVelocities = {}; // empty vector since this function is used twice
     for (int i = 0; i < numPoints; i ++) {
         curveVelocities.emplace_back(Vector2(0, 0));
     }
