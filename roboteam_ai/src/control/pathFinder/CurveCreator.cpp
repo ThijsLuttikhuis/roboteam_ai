@@ -54,11 +54,13 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes) {
             else {
                 // change control point until no obstacle is in the convex anymore
                 // TODO: determine the control point in a mathematical way
-                while (!dangerousObstacle.empty()) {
+                int count = 0;
+                while (!dangerousObstacle.empty() and count < 10) {
                     controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                             (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(0.5);
                     convex = createConvexHull();
                     dangerousObstacle = findDangerousObstacle(convex);
+                    count ++;
                 }
                 controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
                         (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(1); // TODO: .scale() could be used to minimize curvature
