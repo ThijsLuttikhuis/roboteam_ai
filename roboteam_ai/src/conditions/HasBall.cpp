@@ -9,7 +9,6 @@ namespace ai {
 
 HasBall::HasBall(std::string name, bt::Blackboard::Ptr blackboard)
         :Condition(name, blackboard) {
-
 }
 
 bt::Node::Status HasBall::update() {
@@ -20,7 +19,6 @@ bt::Node::Status HasBall::update() {
     auto ball = World::getBall();
     if (botHasBall(ball.pos)) return Status::Success;
     else return Status::Failure;
-
 }
 
 bool HasBall::botHasBall(Vector2 ballPos) {

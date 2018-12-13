@@ -245,7 +245,7 @@ add_executable(Roboteam_AI
         ${INTERFACE_SOURCES})
 
 add_dependencies(Roboteam_AI ${catkin_EXPORTED_TARGETS})
-target_link_libraries(Roboteam_AI ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2TTF_LIBRARY} Qt5::Widgets Qt5::Gui)
+target_link_libraries(Roboteam_AI ${catkin_LIBRARIES} Qt5::Widgets Qt5::Gui)
 
 #############
 ## Testing ##
@@ -289,8 +289,7 @@ target_compile_options(ai_tests PUBLIC --coverage)
 target_link_libraries(ai_tests
         ${catkin_LIBRARIES}
         gcov
-        ${SDL2_LIBRARY}
-        ${SDL2TTF_LIBRARY}
+        Qt5::Widgets Qt5::Gui
         )
 
 include(CodeCoverage)
