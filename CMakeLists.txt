@@ -185,17 +185,20 @@ set(CONDITIONS_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsInDefenseArea.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsRobotClosestToBall.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsRobotClosestToBall.h
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/CanReachPoint.hpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/CanReachPoint.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/Condition.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/Condition.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsInZone.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsInZone.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/utilities/StrategyManager.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/utilities/StrategyManager.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/TheyHaveBall.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/TheyHaveBall.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/WeHaveBall.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/WeHaveBall.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsOnOurSide.cpp)
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsOnOurSide.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/IsOnOurSide.cpp
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/CanSeeGoal.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/conditions/CanSeeGoal.cpp)
 
 ### SOURCES END ###
 
@@ -282,7 +285,8 @@ catkin_add_gtest(ai_tests
         ${SKILLS_SOURCES}
         ${CONTROL_SOURCES}
         ${TACTIC_SOURCES}
-        )
+        ${INTERFACE_SOURCES}
+)
 
 target_compile_options(ai_tests PUBLIC --coverage)
 

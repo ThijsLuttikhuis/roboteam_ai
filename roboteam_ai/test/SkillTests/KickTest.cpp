@@ -22,7 +22,7 @@ TEST(KickTest, It_sends_proper_robotcommands) {
     ros::Subscriber sub = nh.subscribe<roboteam_msgs::RobotCommand>(rtt::TOPIC_COMMANDS, 0, &robotCommandCallback);
 
     auto bb = std::make_shared<bt::Blackboard>();
-    bb->setInt("ROBOT_ID", 1);
+    bb->setString("ROLE", "test1");
     rtt::ai::Kick kick("test", bb);
     kick.initialize();
 

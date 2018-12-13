@@ -20,6 +20,7 @@ void Kick::initialize() {
 }
 
 bt::Node::Status Kick::update() {
+    if (!robot) return Status::Failure;
     // Fail if we did not succeed after a number of cycles
     amountOfCycles ++;
     if (amountOfCycles > constants::MAX_KICK_CYCLES) {

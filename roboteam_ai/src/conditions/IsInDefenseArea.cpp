@@ -14,6 +14,8 @@ IsInDefenseArea::IsInDefenseArea(std::string name, bt::Blackboard::Ptr blackboar
 bt::Node::Status IsInDefenseArea::update() {
     robot = getRobotFromProperties(properties);
 
+    if (!robot) return Status::Failure;
+
     ourDefenseArea = properties->getBool("ourDefenseArea");
     if (properties->hasDouble("margin")) margin = static_cast<float>(properties->getDouble("margin"));
     else margin = 0.0f;

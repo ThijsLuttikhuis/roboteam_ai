@@ -17,10 +17,10 @@ TEST(NoSecondsAhead, IsRobotClosestToBallTest) {
     bt::Blackboard BB;
     BB.setInt("ROBOT_ID", 2);
     auto BBpointer = std::make_shared<bt::Blackboard>(BB);
-    rtt::ai::IsRobotClosestToBall Node("Test", BBpointer);
+    rtt::ai::IsRobotClosestToBall node("Test", BBpointer);
 
     // First test should fail since robot is not set in world state yet
-    ASSERT_EQ(Node.update(), bt::Node::Status::Failure);
+    ASSERT_EQ(node.update(), bt::Node::Status::Failure);
 
     roboteam_msgs::World worldMsg;
     roboteam_msgs::WorldRobot robot;
@@ -35,7 +35,7 @@ TEST(NoSecondsAhead, IsRobotClosestToBallTest) {
     rtt::ai::World::set_world(worldMsg);
 
     // Test should succeed because one robot is always closests to the ball
-    ASSERT_EQ(Node.Update(), bt::Node::Status::Success);
+    ASSERT_EQ(node.update(), bt::Node::Status::Success);
 
     roboteam_msgs::WorldRobot robot2;
 
@@ -46,7 +46,7 @@ TEST(NoSecondsAhead, IsRobotClosestToBallTest) {
     rtt::ai::World::set_world(worldMsg);
 
     // Test should fail since robot 2 is no longer closest to the ball
-    ASSERT_EQ(Node.update(), bt::Node::Status::Failure);
+    ASSERT_EQ(node.update(), bt::Node::Status::Failure);
 }
 
 TEST(secondsAhead, IsRobotClosestToBallTest) {

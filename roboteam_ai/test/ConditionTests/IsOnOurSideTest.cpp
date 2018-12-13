@@ -14,7 +14,7 @@ TEST(DetectsBallOnOurSide, IsOnOurSideTest) {
     auto blackBoard = std::make_shared<bt::Blackboard>(BB);
     rtt::ai::IsOnOurSide node("Test", blackBoard);
 
-    ASSERT_EQ(node.Update(),bt::Node::Status::Failure);
+    ASSERT_EQ(node.update(),bt::Node::Status::Failure);
 
     roboteam_msgs::World worldMsg;
 
@@ -46,7 +46,7 @@ TEST(DetectsRobotOnOurSide, IsOnOurSideTest) {
     auto blackBoard = std::make_shared<bt::Blackboard>(BB);
     rtt::ai::IsOnOurSide node("Test", blackBoard);
 
-    ASSERT_EQ(node.update(),bt::Node::Status::Invalid);
+    ASSERT_EQ(node.update(),bt::Node::Status::Waiting);
 
     roboteam_msgs::World worldMsg;
 
