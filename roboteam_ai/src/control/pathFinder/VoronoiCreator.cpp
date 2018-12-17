@@ -23,11 +23,11 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     arma::Mat<int> triangleCombinations = possibleCombinations(objectCoordinates);
 
     // Calculate the radius and center of each triangle
-    std::pair<arma::Mat<float>, arma::Mat<float>> circleParameters = findCircumcircles(triangleCombinations,
+    std::pair<arma::Mat < float>, arma::Mat < float >> circleParameters = findCircumcircles(triangleCombinations,
             objectCoordinates);
 
     // Make triangles Delaunay
-    std::pair<arma::Mat<float>, arma::Mat<int>> delaunayTriangles = delaunayFilter(objectCoordinates,
+    std::pair<arma::Mat < float>, arma::Mat < int >> delaunayTriangles = delaunayFilter(objectCoordinates,
             circleParameters.first, circleParameters.second, triangleCombinations);
     arma::Mat<float> circleCenters = delaunayTriangles.first;
     triangleCombinations = delaunayTriangles.second;
@@ -48,16 +48,16 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     // Add column with 1 to amount of centers to circleCenter for indexing purposes
     // Convert index column to float
     arma::mat temp = getIndexColumn(circleCenters.n_rows);
-    arma::Mat<float> indexCenters = arma::conv_to<arma::Mat<float>>::from(temp);
+    arma::Mat<float> indexCenters = arma::conv_to < arma::Mat < float >> ::from(temp);
     circleCenters.insert_cols(0, indexCenters);
 
     // Find triangles that share a side
     // First = triangles, second = centers
-    std::pair<arma::Mat<int>, arma::Mat<int>> adjacent = findAdjacentCenter(triangleCombinations);
+    std::pair<arma::Mat < int>, arma::Mat < int >> adjacent = findAdjacentCenter(triangleCombinations);
 
     // Create lines from the start & end point to the centers within that polygon
     // First = start, second = end
-    std::pair<arma::Mat<int>, arma::Mat<int>> startEndSegments = startEndSegmentCreator(triangleCombinations,
+    std::pair<arma::Mat < int>, arma::Mat < int >> startEndSegments = startEndSegmentCreator(triangleCombinations,
             circleCenters, startID, endID);
 
     // Combine adjacentCenters and start & end segments to voronoiSegments
@@ -67,7 +67,7 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
 
     // Add index column to voronoiSegments
     temp = getIndexColumn(voronoiSegments.n_rows);
-    arma::Mat<int> indexSegments = arma::conv_to<arma::Mat<int>>::from(temp);
+    arma::Mat<int> indexSegments = arma::conv_to < arma::Mat < int >> ::from(temp);
     voronoiSegments.insert_cols(0, indexSegments);
 
     // Remove nodes that are in the defence area or outside of the field
@@ -87,6 +87,9 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
             orientationNodeCreator(startID, anglesStart, startOrientationAngle, circleCenters, objectCoordinates);
     std::pair<std::pair<float, float>, std::pair<int, int>> endOrientationParameters =
             orientationNodeCreator(endID, anglesEnd, endOrientationAngle, circleCenters, objectCoordinates);
+
+    std::cout << startOrientationParameters.first.first << " " << startOrientationParameters.first.second << std::endl;
+    std::cout << endOrientationParameters.first.first << " " << endOrientationParameters.first.second << std::endl;
 
     std::pair<float, float> startOrientationNode = startOrientationParameters.first;
     std::pair<float, float> endOrientationNode = endOrientationParameters.first;
@@ -161,10 +164,8 @@ VoronoiCreator::parameters VoronoiCreator::createVoronoi(const arma::Mat<float> 
     voronoiSegments.insert_rows(voronoiSegments.n_rows, tempRow1);
 
     // Change name for the rest of the calculations
-    arma::Mat<float> voronoiNodes = circleCenters;
-
     parameters voronoiParameters;
-    voronoiParameters.nodes = voronoiNodes;
+    voronoiParameters.nodes = circleCenters;
     voronoiParameters.segments = voronoiSegments;
 
     return voronoiParameters;
@@ -487,6 +488,16 @@ std::pair<std::pair<float, float>, std::pair<int, int>>
 VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, float orientationAngle,
         arma::Mat<float> circleCenters, const arma::Mat<float> objectCoordinates) {
 
+    std::pair<float, float> orientationNode;
+    std::pair<int, int> orientationSegments;
+
+    if (angles.is_empty() && inp == 0) {
+        std::cout << "No segments connected to the start point! Can't create orientation node!" << std::endl;
+    }
+    else if (angles.is_empty() && inp == 1) {
+        std::cout << "No segments connected to the end point! Can't create orientation node!" << std::endl;
+    }
+
     std::pair<float, float> pt = std::make_pair(objectCoordinates(inp, 0), objectCoordinates(inp, 1));
 
     arma::Mat<float> temp(1, 2);
@@ -537,60 +548,71 @@ VoronoiCreator::orientationNodeCreator(const int inp, arma::Mat<float> angles, f
     int indexGreater = angleDifGreater.index_min();
     int indexSmaller = angleDifSmaller.index_min();
 
-    arma::Mat<float> adjacentAngle;
-    adjacentAngle.insert_rows(0, greaterAngle.row(indexGreater));
-    adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
-
-    // Determine the coordinates of the points that the orientation vector is pointing in between
-    float xg, yg, xs, ys; // x greater, y greater, x smaller, y smaller
-    for (int i = 0; i < circleCenters.n_rows; i ++) {
-        if (circleCenters(i, 0) == adjacentAngle(0, 0)) {
-            xg = circleCenters(i, 1);
-            yg = circleCenters(i, 2);
-        }
-        else if (circleCenters(i, 0) == adjacentAngle(1, 0)) {
-            xs = circleCenters(i, 1);
-            ys = circleCenters(i, 2);
+    if (smallerAngle(indexSmaller, 0) == greaterAngle(indexGreater, 0)) {
+        std::cout << "Can't draw line between one point! Orientation point is now this point." << std::endl;
+        for (int i = 0; i < circleCenters.n_rows; i ++) {
+            if (i == smallerAngle(indexSmaller, 0)) {
+                orientationNode = std::make_pair(circleCenters(i, 1), circleCenters(i, 2));
+                orientationSegments = std::make_pair(smallerAngle(indexSmaller, 0), inp);
+            }
         }
     }
+    else {
+        arma::Mat<float> adjacentAngle;
+        adjacentAngle.insert_rows(0, greaterAngle.row(indexGreater));
+        adjacentAngle.insert_rows(1, smallerAngle.row(indexSmaller));
 
-    std::pair<float, float> linePoint1 = std::make_pair(xg, yg);
-    std::pair<float, float> linePoint2 = std::make_pair(xs, ys);
+        // Determine the coordinates of the points that the orientation vector is pointing in between
+        float xg, yg, xs, ys; // x greater, y greater, x smaller, y smaller
+        for (int i = 0; i < circleCenters.n_rows; i ++) {
+            if (circleCenters(i, 0) == adjacentAngle(0, 0)) {
+                xg = circleCenters(i, 1);
+                yg = circleCenters(i, 2);
+            }
+            else if (circleCenters(i, 0) == adjacentAngle(1, 0)) {
+                xs = circleCenters(i, 1);
+                ys = circleCenters(i, 2);
+            }
+        }
 
-    // Create a point at some distance in front of the start/end point to be able to create a line between
-    // this point and the start/end point
-    float orientationMargin = 0.01; // random value, can be anything
-    float h = orientationMargin*sin(orientationAngle);
-    float l = orientationMargin*cos(orientationAngle);
-    std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
+        std::pair<float, float> linePoint1 = std::make_pair(xg, yg);
+        std::pair<float, float> linePoint2 = std::make_pair(xs, ys);
 
-    // Create lines and calculate intersection
-    // line 1 = start - ptOrientation
-    // line 2 = linePoints1 - linePoints2
+        // Create a point at some distance in front of the start/end point to be able to create a line between
+        // this point and the start/end point
+        float orientationMargin = 0.01; // random value, can be anything
+        float h = orientationMargin*sin(orientationAngle);
+        float l = orientationMargin*cos(orientationAngle);
+        std::pair<float, float> ptOrientation = std::make_pair(pt.first + l, pt.second + h);
 
-    // Create line 1
-    double a, b, c;
-    lineFromPoints(pt, ptOrientation, a, b, c);
+        // Create lines and calculate intersection
+        // line 1 = start - ptOrientation
+        // line 2 = linePoints1 - linePoints2
 
-    // Create line 2
-    double e, f, g;
-    lineFromPoints(linePoint1, linePoint2, e, f, g);
+        // Create line 1
+        double a, b, c;
+        lineFromPoints(pt, ptOrientation, a, b, c);
 
-    // Calculate orientation node
-    std::pair<float, float> orientationNode = lineLineIntersection(a, b, c, e, f, g);
+        // Create line 2
+        double e, f, g;
+        lineFromPoints(linePoint1, linePoint2, e, f, g);
 
-    // Put orientation point on field line if it's outside of the field
-    float length = Field::get_field().field_length;
-    float width = Field::get_field().field_width;
-    if (orientationNode.first > length/2 || orientationNode.first < - length/2) {
-        orientationNode.first < 0 ? orientationNode.first = - length/2 : orientationNode.first = length/2;
+        // Calculate orientation node
+        orientationNode = lineLineIntersection(a, b, c, e, f, g);
+
+        // Put orientation point on field line if it's outside of the field
+        float length = Field::get_field().field_length;
+        float width = Field::get_field().field_width;
+        if (orientationNode.first > length/2 || orientationNode.first < - length/2) {
+            orientationNode.first < 0 ? orientationNode.first = - length/2 : orientationNode.first = length/2;
+        }
+        if (orientationNode.second > width/2 || orientationNode.second < - width/2) {
+            orientationNode.second < 0 ? orientationNode.second = - width/2 : orientationNode.second = width/2;
+        }
+
+        // Make pair of points that should be connected to the orientation node
+        orientationSegments = std::make_pair(adjacentAngle(0, 0), adjacentAngle(1, 0));
     }
-    if (orientationNode.second > width/2 || orientationNode.second < - width/2) {
-        orientationNode.second < 0 ? orientationNode.second = - width/2 : orientationNode.second = width/2;
-    }
-
-    // Make pair of points that should be connected to the orientation node
-    std::pair<int, int> orientationSegments = std::make_pair(adjacentAngle(0, 0), adjacentAngle(1, 0));
 
     std::pair<std::pair<float, float>, std::pair<int, int>> orientationParameters = std::make_pair(orientationNode,
             orientationSegments);
