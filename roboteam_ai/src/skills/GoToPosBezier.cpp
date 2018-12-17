@@ -54,7 +54,7 @@ void GoToPosBezier::initialize() {
 
     updateCurveData(0, false);
     /// Set PID values
-    pidVarsInitial.kP = 30.0;
+    pidVarsInitial.kP = 3.0;
     pidVarsInitial.kI = 0.1;
     pidVarsInitial.kD = 0.1;
     pidVarsInitial.prev_err = 0;
@@ -97,55 +97,56 @@ bt::Node::Status GoToPosBezier::update() {
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
-    std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
+    //std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
 
     pidEndTime = clock();
     pidVarsXPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
     pidVarsYPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
     pidStartTime = clock();
-    //std::cout << "time diff: " << K.timeDiff << std::endl;
-    //K.timeDiff = 0.016;
+
     float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, pidVarsXPos);
     float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, pidVarsYPos);
-
-    //std::cout << "x out PID: " << xOutputPID << std::endl;
 
     curve.velocities[currentPoint].x += xOutputPID;
     curve.velocities[currentPoint].y += yOutputPID;
 
-    auto desiredAngle = curve.angles[currentPoint];
-    //std::cout << "ANGLE >> desired: " << desiredAngle << "  current: " << robot.angle <<  "  diff: " << desiredAngle - robot.angle << std::endl;
-    // For old grSim:
-//    double currentAngle = robot.angle;
-//    double xVelocity = curve.velocities[currentPoint].x * cos(currentAngle) + curve.velocities[currentPoint].y * sin(currentAngle);
-//    double yVelocity = -curve.velocities[currentPoint].x * sin(currentAngle) + curve.velocities[currentPoint].y * cos(currentAngle);
-    double xVelocity = curve.velocities[currentPoint].x;
-    double yVelocity = curve.velocities[currentPoint].y;
+    double xVelocity = curve.velocities[currentPoint].x * cos(robot.angle) + curve.velocities[currentPoint].y * sin(robot.angle);
+    double yVelocity = curve.velocities[currentPoint].x * -sin(robot.angle) + curve.velocities[currentPoint].y * cos(robot.angle);
+
+    auto desiredAngle = M_PI;
 
     // Send a move command
     sendMoveCommand(desiredAngle, xVelocity, yVelocity);
 
     // Determine if new curve is needed
     bool isAtEnd = currentPoint >= curve.positions.size() - 1;
-    bool isErrorTooLarge = posError.length() > 0.5;
+    bool isErrorTooLarge = posError.length() > 1.0;
 
     // Calculate new curve if needed
-        if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
-            if (isErrorTooLarge) {
-                sendMoveCommand(robot.angle, 0, 0);
-            }
-            //clock_t begin = clock();
-            updateCurveData(currentPoint, isErrorTooLarge);
-            //clock_t end = clock();
-            //std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
+    if (isAtEnd || isErrorTooLarge || isAnyObstacleAtCurve(currentPoint)) {
+        std::cout << "------------------------" << std::endl;
+        std::cout << "       NEW CURVE" << std::endl;
+        std::cout << " Reason: ";
+        if (isAtEnd) {std::cout << "End of curve | ";}
+        if (isErrorTooLarge) {std::cout << "Error too large | ";}
+        if (isAnyObstacleAtCurve(currentPoint)) {std::cout << "Obstacle on curve | ";}
+        std::cout << std::endl;
+        std::cout << "------------------------" << std::endl;
 
-            std::cout << "------------------------" << std::endl;
-            std::cout << "       NEW CURVE" << std::endl;
-            std::cout << "------------------------" << std::endl;
-        }
+        //clock_t begin = clock();
+        updateCurveData(currentPoint, isErrorTooLarge);
+        //clock_t end = clock();
+        //std::cout << "seconds to calculate new curve: " << (double)(end - begin)/CLOCKS_PER_SEC << std::endl;
+    }
 
     // Now check the progress we made
     currentProgress = checkProgression();
+
+        if (currentProgress == DONE) {
+            curve.velocities.empty();
+            curve.positions.empty();
+            curve.angles.empty();
+        }
 
     switch (currentProgress) {
 
@@ -173,8 +174,9 @@ void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double
 
     roboteam_msgs::RobotCommand command;
     command.id = robot.id;
-    command.use_angle = 1;
-    command.w = desiredAngle;
+    command.use_angle = 0;
+    //command.w = desiredAngle;
+    command.w = (float)control::ControlUtils::calculateAngularVelocity(robot.angle, desiredAngle);
 //    std::cout << "Current angle: " << robot.angle << std::endl;
 //    std::cout << "Desired angle: " << desiredAngle << std::endl;
 
@@ -192,7 +194,7 @@ GoToPosBezier::Progression GoToPosBezier::checkProgression() {
     double dx = targetPos.x - robot.pos.x;
     double dy = targetPos.y - robot.pos.y;
     double deltaPos = (dx*dx) + (dy*dy);
-    double maxMargin = 0.1;                 // max offset or something.
+    double maxMargin = 0.05;                 // max offset or something.
 
     if (abs(deltaPos) >= maxMargin) return ON_THE_WAY;
     else return DONE;
