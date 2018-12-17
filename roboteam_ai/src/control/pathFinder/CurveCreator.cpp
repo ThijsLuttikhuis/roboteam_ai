@@ -15,27 +15,44 @@ CurveCreator::CurveCreator(float numPoints) {
 }
 
 /// Main function, calls functions to create a curve
-void CurveCreator::createCurve(std::vector<Vector2> pathNodes, std::vector<Vector2> robotCoordinates,
+void CurveCreator::createCurve(std::vector<Vector2> path, std::vector<Vector2> robotCoordinates,
         float startVelocity, float endVelocity) {
+    pathNodes = path;
     robotCoordinates.erase(robotCoordinates.begin()); // Delete start point from objects
     robotCoordinates.erase(robotCoordinates.begin()); // Delete end point from objects
     objectCoordinates = robotCoordinates;
+
     if (pathNodes.size() < 2) {
         std::cout << "You need to enter at least 2 nodes in order to create a curve." << std::endl;
     }
     else {
-        calculateControlPoints(pathNodes);
-        convertPointsToCurve();
-        limitMovement();
+        /// Determine locations of control points
+        calculateControlPoints();
         bool isEndPiece = controlPoints.back() == pathNodes.back();
-        shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece);
-        limitMovement();
+        shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece, false);
+
+        /// Limit velocity and acceleration by stretching time
+        calculateVelocity();
+        calculateAcceleration();
+        calculateTotalTime();
+        scaleVelocities();
+        scaleAcceleration();
+
+        /// Shift control points again to have the right velocities
+        shiftVelocityControlPoints(startVelocity, endVelocity, isEndPiece, true);
+
+        /// Calculate all needed variables
+        calculateVelocity();
+        calculateAcceleration();
+        scaleVelocities();
+        scaleAcceleration();
         calculateOrientation();
+        convertPointsToCurve();
     }
 }
 
 /// Calculate the position where the control points of the curve should be
-void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes) {
+void CurveCreator::calculateControlPoints() {
     controlPoints.push_back(pathNodes[0]); // First path node is always a control point
     controlPoints.push_back(pathNodes[1]); // Second path node is always a control point
 
@@ -55,22 +72,25 @@ void CurveCreator::calculateControlPoints(std::vector<Vector2> pathNodes) {
                 // change control point until no obstacle is in the convex anymore
                 // TODO: determine the control point in a mathematical way
                 int count = 0;
-                while (!dangerousObstacle.empty() and count < 10) {
-                    controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
-                            (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(0.5);
+                while (! dangerousObstacle.empty() and count < 10) {
+                    controlPoints[controlPoints.size() - 1] = controlPoints[controlPoints.size() - 2] +
+                            (controlPoints[controlPoints.size() - 1] - controlPoints[controlPoints.size() - 2]).scale(
+                                    0.5);
                     convex = createConvexHull();
                     dangerousObstacle = findDangerousObstacle(convex);
                     count ++;
                 }
-                controlPoints[controlPoints.size()-1] = controlPoints[controlPoints.size()-2] +
-                        (controlPoints[controlPoints.size()-1] - controlPoints[controlPoints.size()-2]).scale(1); // TODO: .scale() could be used to minimize curvature
+                controlPoints[controlPoints.size() - 1] = controlPoints[controlPoints.size() - 2] +
+                        (controlPoints[controlPoints.size() - 1] - controlPoints[controlPoints.size() - 2]).scale(
+                                1); // TODO: .scale() could be used to minimize curvature
                 break;
             }
         }
 
         // Add velocity control points (correct placing is done later by shiftVelocityControlPoints)
         Vector2 startVelCP = controlPoints[0] + (controlPoints[1] - controlPoints[0]).scale(0.5);
-        Vector2 endVelCP = controlPoints[controlPoints.size() - 2] + (controlPoints[controlPoints.size() - 1] - controlPoints[controlPoints.size() - 2]).scale(0.5);
+        Vector2 endVelCP = controlPoints[controlPoints.size() - 2]
+                + (controlPoints[controlPoints.size() - 1] - controlPoints[controlPoints.size() - 2]).scale(0.5);
 
         controlPoints.insert(controlPoints.begin() + 1, startVelCP);
         controlPoints.insert(controlPoints.end() - 1, endVelCP);
@@ -114,7 +134,8 @@ std::vector<Vector2> CurveCreator::createConvexHull() {
                     if ((point - P).normalize().dot(unitVecX) > (sortedList[i] - P).normalize().dot(unitVecX)) {
                         sortedList.insert(sortedList.begin() + i, point);
                         break;
-                    } else if (i == sortedList.size()-1) {
+                    }
+                    else if (i == sortedList.size() - 1) {
                         sortedList.push_back(point);
                         break;
                     }
@@ -131,7 +152,7 @@ std::vector<Vector2> CurveCreator::createConvexHull() {
     double crossProduct;
     int index = 0;
     Vector2 vec1, vec2;
-    for (int i = 2; i < sortedList.size(); i++) {
+    for (int i = 2; i < sortedList.size(); i ++) {
         vec1 = convex[index + 1] - convex[index];
         vec2 = sortedList[i] - convex[index];
         crossProduct = vec1.x*vec2.y - vec1.y*vec2.x;
@@ -193,29 +214,33 @@ CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 lin
 }
 
 /// Shift control points to the set such that the initial and final velocity demands have been met
-void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece) {
+void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece,
+        bool includeTime) {
     auto numControlPoints = controlPoints.size();
 
     float startScaleFactor = startVelocity/(numControlPoints - 1);
+    startScaleFactor = includeTime ? startScaleFactor*totalTime : startScaleFactor;
 
     if (startScaleFactor < 0) {
         std::cout << "startScaleFactor is smaller than 0" << std::endl;
     }
 
-    startScaleFactor = startScaleFactor > (float) (controlPoints[1] - controlPoints[0]).length()
-                       ? (float) (controlPoints[1] - controlPoints[0]).length() : startScaleFactor;
+    startScaleFactor = startScaleFactor > (float) (pathNodes[1] - pathNodes[0]).length()
+                       ? (float) (pathNodes[1] - pathNodes[0]).length() : startScaleFactor;
 
-    Vector2 startVelCP = controlPoints[0] + (controlPoints[1] - controlPoints[0]).stretchToLength(startScaleFactor);
+    Vector2 startVelCP = pathNodes[0] + (pathNodes[1] - pathNodes[0]).stretchToLength(startScaleFactor);
     controlPoints[1] = startVelCP;
 
     if (isEndPiece) {
         float endScaleFactor = endVelocity/(numControlPoints - 1);
-        endScaleFactor = endScaleFactor > (float) (controlPoints[controlPoints.size() - 2]
-                - controlPoints[controlPoints.size() - 1]).length()
-                         ? (float) (controlPoints[controlPoints.size() - 2]
-                        - controlPoints[controlPoints.size() - 1]).length() : endScaleFactor;
-        Vector2 endVelCP = controlPoints.back()
-                + (controlPoints[controlPoints.size() - 2] - controlPoints[controlPoints.size() - 1]).stretchToLength(
+        endScaleFactor = includeTime ? endScaleFactor*totalTime : endScaleFactor;
+
+        endScaleFactor = endScaleFactor > (float) (pathNodes[pathNodes.size() - 2]
+                - pathNodes[pathNodes.size() - 1]).length()
+                         ? (float) (pathNodes[pathNodes.size() - 2]
+                        - pathNodes[pathNodes.size() - 1]).length() : endScaleFactor;
+        Vector2 endVelCP = pathNodes.back()
+                + (pathNodes[pathNodes.size() - 2] - pathNodes[pathNodes.size() - 1]).stretchToLength(
                         endScaleFactor);
 
         controlPoints[controlPoints.size() - 2] = endVelCP;
@@ -270,72 +295,6 @@ void CurveCreator::calculateVelocity() {
             + (curveVelocities[curveVelocities.size() - 2] - curveVelocities[curveVelocities.size() - 3]);
 }
 
-/// Calculate the total time in which the curve can be finished based on maximum velocity
-void CurveCreator::calculateTotalTime() {
-    // Get the highest velocity that will be reached in the curve
-    float highestVelocity = 0.0;
-    for (const Vector2 &vel : curveVelocities) {
-        highestVelocity = ((float)vel.length() > highestVelocity) ? (float)vel.length() : highestVelocity;
-    }
-    float velocityFactor = highestVelocity/maxVelocity; // multiply velocity by this factor to limit it
-
-    // Get the highest acceleration that will be reached in the curve
-    float highestAcceleration = 0.0;
-    for (const Vector2 &acc : curveAccelerations) {
-        highestAcceleration = ((float)acc.length() > highestAcceleration) ? (float)acc.length() : highestAcceleration;
-    }
-    auto accelerationFactor = (float)sqrt(highestAcceleration/maxAcceleration); // multiply acceleration by this factor to limit it
-
-    totalTime = velocityFactor > accelerationFactor ? velocityFactor : accelerationFactor; // Take the greater one to limit both
-}
-
-/// Scale velocity to maximum
-void CurveCreator::scaleVelocities() {
-    for (int i = 0; i < curveVelocities.size(); i++) {
-        curveVelocities[i].x /= totalTime;
-        curveVelocities[i].y /= totalTime;
-    }
-}
-
-/// Scale acceleration to maximum
-void CurveCreator::scaleAcceleration() {
-    for (int i = 0; i < curveAccelerations.size(); i++) {
-        curveAccelerations[i].x /= totalTime*totalTime;
-        curveAccelerations[i].y /= totalTime*totalTime;
-    }
-}
-
-/// Calculate the orientation at each of the curve points
-void CurveCreator::calculateOrientation() {
-    for (Vector2 &vel: curveVelocities) {
-        curveOrientations.push_back((float) vel.angle());
-    }
-
-    // Fix first point by extrapolation
-    curveOrientations[0] = curveOrientations[1] - (curveOrientations[2] - curveOrientations[1]);
-}
-
-/// Factorial function: result = x!
-double CurveCreator::factorial(float x) {
-    double result = 1;
-    for (int i = 1; i <= x; i += 1) {
-        result *= i;
-    }
-    return result;
-}
-
-/// Limit velocity and acceleration to specified values
-void CurveCreator::limitMovement() {
-    calculateVelocity();
-    calculateAcceleration();
-    calculateTotalTime();
-    scaleVelocities();
-    scaleAcceleration();
-}
-
-/// -------------------------------------
-/// Unused functions that might be useful
-/// -------------------------------------
 /// Calculate the curve acceleration at each of the curve points
 void CurveCreator::calculateAcceleration() {
     float curveDegree = controlPoints.size() - 1;
@@ -364,6 +323,65 @@ void CurveCreator::calculateAcceleration() {
             + (curveAccelerations[curveAccelerations.size() - 2] - curveAccelerations[curveAccelerations.size() - 3]);
 }
 
+/// Calculate the total time in which the curve can be finished based on maximum velocity
+void CurveCreator::calculateTotalTime() {
+    // Get the highest velocity that will be reached in the curve
+    float highestVelocity = 0.0;
+    for (const Vector2 &vel : curveVelocities) {
+        highestVelocity = ((float) vel.length() > highestVelocity) ? (float) vel.length() : highestVelocity;
+    }
+    float velocityFactor = highestVelocity/maxVelocity; // multiply velocity by this factor to limit it
+
+    // Get the highest acceleration that will be reached in the curve
+    float highestAcceleration = 0.0;
+    for (const Vector2 &acc : curveAccelerations) {
+        highestAcceleration = ((float) acc.length() > highestAcceleration) ? (float) acc.length() : highestAcceleration;
+    }
+    auto accelerationFactor = (float) sqrt(
+            highestAcceleration/maxAcceleration); // multiply acceleration by this factor to limit it
+
+    totalTime = velocityFactor > accelerationFactor ? velocityFactor
+                                                    : accelerationFactor; // Take the greater one to limit both
+}
+
+/// Scale velocity to maximum
+void CurveCreator::scaleVelocities() {
+    for (int i = 0; i < curveVelocities.size(); i ++) {
+        curveVelocities[i].x /= totalTime;
+        curveVelocities[i].y /= totalTime;
+    }
+}
+
+/// Scale acceleration to maximum
+void CurveCreator::scaleAcceleration() {
+    for (int i = 0; i < curveAccelerations.size(); i ++) {
+        curveAccelerations[i].x /= totalTime*totalTime;
+        curveAccelerations[i].y /= totalTime*totalTime;
+    }
+}
+
+/// Calculate the orientation at each of the curve points
+void CurveCreator::calculateOrientation() {
+    for (Vector2 &vel: curveVelocities) {
+        curveOrientations.push_back((float) vel.angle());
+    }
+
+    // Fix first point by extrapolation
+    curveOrientations[0] = curveOrientations[1] - (curveOrientations[2] - curveOrientations[1]);
+}
+
+/// Factorial function: result = x!
+double CurveCreator::factorial(float x) {
+    double result = 1;
+    for (int i = 1; i <= x; i += 1) {
+        result *= i;
+    }
+    return result;
+}
+
+/// -------------------------------------
+/// Unused functions that might be useful
+/// -------------------------------------
 /// Determine the point on a given line such that the vector from startPoint to this point is tangent to a circular obstacle
 Vector2 CurveCreator::pointOnLinePastObstacle(Vector2 startPoint, Vector2 obstaclePos,
         std::vector<Vector2> linepoints) {

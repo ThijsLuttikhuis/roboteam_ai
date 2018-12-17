@@ -96,24 +96,27 @@ bt::Node::Status GoToPosBezier::update() {
     timeDif = now - startTime;
     int currentPoint = (int) round((timeDif.count()/totalTime*curve.positions.size()));
     currentPoint = currentPoint >= (int) curve.positions.size() ? (int) curve.positions.size() - 1 : currentPoint;
+    currentPoint = currentPoint < 0 ? 0 : currentPoint;
 
     // Calculate additional velocity due to position error
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
     //std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
 
     pidEndTime = clock();
-    pidVarsXPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
-    pidVarsYPos.timeDiff = ((float)(pidEndTime-pidStartTime))/CLOCKS_PER_SEC;
+    pidVarsXPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
+    pidVarsYPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
     pidStartTime = clock();
 
-    float xOutputPID = control::ControlUtils::PIDcontroller((float)posError.x, pidVarsXPos);
-    float yOutputPID = control::ControlUtils::PIDcontroller((float)posError.y, pidVarsYPos);
+    float xOutputPID = control::ControlUtils::PIDcontroller((float) posError.x, pidVarsXPos);
+    float yOutputPID = control::ControlUtils::PIDcontroller((float) posError.y, pidVarsYPos);
 
     curve.velocities[currentPoint].x += xOutputPID;
     curve.velocities[currentPoint].y += yOutputPID;
 
-    double xVelocity = curve.velocities[currentPoint].x * cos(robot.angle) + curve.velocities[currentPoint].y * sin(robot.angle);
-    double yVelocity = curve.velocities[currentPoint].x * -sin(robot.angle) + curve.velocities[currentPoint].y * cos(robot.angle);
+    double xVelocity =
+            curve.velocities[currentPoint].x*cos(robot.angle) + curve.velocities[currentPoint].y*sin(robot.angle);
+    double yVelocity =
+            curve.velocities[currentPoint].x*- sin(robot.angle) + curve.velocities[currentPoint].y*cos(robot.angle);
 
     auto desiredAngle = M_PI;
 
@@ -127,15 +130,14 @@ bt::Node::Status GoToPosBezier::update() {
 
     // Calculate new curve if needed
     if (isAtEnd || isErrorTooLarge || hasTargetChanged || isAnyObstacleAtCurve(currentPoint)) {
-        std::cout << "------------------------" << std::endl;
-        std::cout << "       NEW CURVE" << std::endl;
-        std::cout << " Reason: ";
-        if (isAtEnd) {std::cout << "End of curve | ";}
-        if (isErrorTooLarge) {std::cout << "Error too large | ";}
-        if (hasTargetChanged) {std::cout << "Target changed | ";}
-        if (isAnyObstacleAtCurve(currentPoint)) {std::cout << "Obstacle on curve | ";}
-        std::cout << std::endl;
-        std::cout << "------------------------" << std::endl;
+        std::cerr << "------------------------" << std::endl;
+        std::cerr << "       NEW CURVE \n Reason: ";
+        if (isAtEnd) { std::cerr << "End of curve | "; }
+        if (isErrorTooLarge) { std::cerr << "Error too large | "; }
+        if (hasTargetChanged) { std::cerr << "Target changed | "; }
+        if (isAnyObstacleAtCurve(currentPoint)) { std::cerr << "Obstacle on curve | "; }
+        std::cerr << std::endl;
+        std::cerr << "------------------------" << std::endl;
 
         //clock_t begin = clock();
         updateCurveData(currentPoint, isErrorTooLarge);
@@ -146,11 +148,11 @@ bt::Node::Status GoToPosBezier::update() {
     // Now check the progress we made
     currentProgress = checkProgression();
 
-        if (currentProgress == DONE) {
-            curve.velocities.empty();
-            curve.positions.empty();
-            curve.angles.empty();
-        }
+    if (currentProgress == DONE) {
+        curve.velocities.empty();
+        curve.positions.empty();
+        curve.angles.empty();
+    }
 
     switch (currentProgress) {
 
@@ -180,12 +182,12 @@ void GoToPosBezier::sendMoveCommand(float desiredAngle, double xVelocity, double
     command.id = robot.id;
     command.use_angle = 0;
     //command.w = desiredAngle;
-    command.w = (float)control::ControlUtils::calculateAngularVelocity(robot.angle, desiredAngle);
+    command.w = (float) control::ControlUtils::calculateAngularVelocity(robot.angle, desiredAngle);
 //    std::cout << "Current angle: " << robot.angle << std::endl;
 //    std::cout << "Desired angle: " << desiredAngle << std::endl;
 
-    command.x_vel = (float)xVelocity;
-    command.y_vel = (float)yVelocity;
+    command.x_vel = (float) xVelocity;
+    command.y_vel = (float) yVelocity;
 
     publishRobotCommand(command);
     //std::cerr << "                  xvel: " << command.x_vel << ", yvel: " << command.y_vel << ", w_vel: " << command.w
@@ -244,19 +246,19 @@ void GoToPosBezier::updateCurveData(int currentPoint, bool isErrorTooLarge) {
     auto endAngle = (float) M_PI;
     float endVelocity = 0;
     Vector2 robotVel = robot.vel;
-    auto startVelocity = (float)robotVel.length();
+    auto startVelocity = (float) robotVel.length();
     Vector2 startPos = robot.pos;
     float startAngle = robot.angle;
 
-    if (!curve.positions.empty() && !isErrorTooLarge) {
+    if (! curve.positions.empty() && ! isErrorTooLarge) {
         startPos = curve.positions[currentPoint];
         startAngle = curve.angles[currentPoint];
-        startVelocity = (float)curve.velocities[currentPoint].length();
+        startVelocity = (float) curve.velocities[currentPoint].length();
     }
 
     //startPos = startPos + robotVel.scale(0.08); // Add prediction based on delay
-    startAngle < 0 ? startAngle = startAngle + 2*(float)M_PI : startAngle;
-    endAngle < 0 ? endAngle = endAngle + 2*(float)M_PI : endAngle;
+    startAngle < 0 ? startAngle = startAngle + 2*(float) M_PI : startAngle;
+    endAngle < 0 ? endAngle = endAngle + 2*(float) M_PI : endAngle;
 
     pathFinder.calculatePath(targetPos, startPos, endAngle, startAngle, startVelocity, endVelocity, robotCoordinates);
 
@@ -275,9 +277,10 @@ bool GoToPosBezier::isAnyObstacleAtCurve(int currentPoint) {
     auto world = World::get_world();
 
     Vector2 robotPos;
-    double maxCurveIndex = currentPoint + curve.positions.size() * (1.0/totalTime); // Foresee collision max 1.0 s in the future
+    double maxCurveIndex =
+            currentPoint + curve.positions.size()*(1.0/totalTime); // Foresee collision max 1.0 s in the future
     maxCurveIndex = maxCurveIndex > curve.positions.size() ? curve.positions.size() : maxCurveIndex;
-    for (int i = currentPoint; i < maxCurveIndex; i++) {
+    for (int i = currentPoint; i < maxCurveIndex; i ++) {
         for (auto ourBot: world.us) {
             if (ourBot.id != robot.id) {
                 robotPos = ourBot.pos;
