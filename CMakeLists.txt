@@ -198,7 +198,9 @@ set(PATHFINDER_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/FindShortestPath.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/FindShortestPath.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurveCreator.cpp
-        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurveCreator.h)
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurveCreator.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurvatureOptimizer.h
+        ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/pathFinder/CurvatureOptimizer.cpp)
 
 ### SOURCES END ###
 
