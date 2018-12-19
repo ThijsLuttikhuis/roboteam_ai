@@ -216,7 +216,7 @@ CurveCreator::distancePointToLine(Vector2 point, Vector2 linepoint1, Vector2 lin
 /// Shift control points to the set such that the initial and final velocity demands have been met
 void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelocity, bool isEndPiece,
         bool includeTime) {
-    auto numControlPoints = controlPoints.size();
+    auto numControlPoints = controlPoints.size() + 1; // include new start velocity control point
 
     float startScaleFactor = startVelocity/(numControlPoints - 1);
     startScaleFactor = includeTime ? startScaleFactor*totalTime : startScaleFactor;
@@ -229,7 +229,7 @@ void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelo
                        ? (float) (pathNodes[1] - pathNodes[0]).length() : startScaleFactor;
 
     Vector2 startVelCP = pathNodes[0] + (pathNodes[1] - pathNodes[0]).stretchToLength(startScaleFactor);
-    controlPoints[1] = startVelCP;
+    controlPoints.insert(controlPoints.begin() + 1, startVelCP);
 
     if (isEndPiece) {
         float endScaleFactor = endVelocity/(numControlPoints - 1);
@@ -239,6 +239,7 @@ void CurveCreator::shiftVelocityControlPoints(float startVelocity, float endVelo
                 - pathNodes[pathNodes.size() - 1]).length()
                          ? (float) (pathNodes[pathNodes.size() - 2]
                         - pathNodes[pathNodes.size() - 1]).length() : endScaleFactor;
+
         Vector2 endVelCP = pathNodes.back()
                 + (pathNodes[pathNodes.size() - 2] - pathNodes[pathNodes.size() - 1]).stretchToLength(
                         endScaleFactor);
