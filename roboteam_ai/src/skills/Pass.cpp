@@ -7,78 +7,57 @@ namespace rtt {
 namespace ai {
 
 Pass::Pass(string name, bt::Blackboard::Ptr blackboard)
-        :Skill(name, blackboard) {
-}
-
-/// Return name of the skill
-std::string Pass::node_name() {
-    return "Pass";
+        :Skill(std::move(name), std::move(blackboard)) {
 }
 
 /// Called when the Skill is Initialized
-void Pass::initialize() {
-
-    if (properties->hasString("ROLE")) {
-        std::string roleName = properties->getString("ROLE");
-        robot.id = (unsigned int) dealer::findRobotForRole(roleName);
-        if (World::getRobotForId(robot.id, true)) {
-            robot = World::getRobotForId(robot.id, true).get();
-        }
-        else {
-            ROS_ERROR("Pass Initialize -> robot does not exist in world");
-            return;
-        }
-    }
-    else {
-        ROS_ERROR("Pass Initialize -> ROLE WAITING!!");
-        return;
-    }
-//  ____________________________________________________________________________________________________________________
-
+void Pass::onInitialize() {
     defensive = properties->getBool("defensive");
-    robotToPass = -1;
+    robotToPass = - 1;
 }
 
 /// Called when the Skill is Updated
-Pass::Status Pass::update() {
+Pass::Status Pass::onUpdate() {
 
-    if (World::getRobotForId(robot.id, true)) {
-        robot = World::getRobotForId(robot.id, true).get();
-    }
-    else {
-        ROS_ERROR("Pass Update -> robot does not exist in world");
-    }
-//  ____________________________________________________________________________________________________________________
-
-
-    if (robotToPass == -1) {
-        robotToPass = getRobotToPass();
+    if (robotToPass == - 1) {
+        if (defensive) {
+            robotToPass = coach::pickDefensivePassTarget(robot->id);
+        }
+        else {
+            robotToPass = coach::pickOffensivePassTarget(robot->id, properties->getString("ROLE"));
+        }
         return Status::Running;
     }
     if (sendPassCommand()) {
         return Status::Success;
     }
 
-//  ____________________________________________________________________________________________________________________
     return Status::Running;
 }
 
-/// Called when the Skill is Terminated
-void Pass::terminate(Status s) {
-
-}
 bool Pass::sendPassCommand() {
 
-    /*
-     * Try to pass tp the given robot. If it is not possible at the moment return false
-     */
+    if (getReadyToPass()) {
+        // TODO send the magik kick command
+        return true;
+    }
+
+    return false;
+}
+bool Pass::getReadyToPass() {
+
+    // Probably stop?
+
+    // Turn to the angle
+
+    // return true when the angle and velocity looks fine
+
+    // Make money !
+
 
 
     return false;
 }
-int Pass::getRobotToPass() {
-    return 0;
-}
 
-}
-}
+} // ai
+} // rtt

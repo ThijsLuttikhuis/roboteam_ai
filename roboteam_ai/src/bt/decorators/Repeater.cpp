@@ -1,8 +1,10 @@
+/*
+ * The Repeater decorator repeats infinitely or to a limit until the child returns success.
+ */
 
 #include "Repeater.hpp"
 
 namespace bt {
-
 
 void Repeater::initialize() {
     counter = 0;
@@ -11,18 +13,11 @@ void Repeater::initialize() {
 }
 
 Node::Status Repeater::update() {
-
     while (limit >= 0 && (limit != counter++ || limit == 0)) {
-        Node::append_status("[Repeater: executing child of type %s]", child->node_name().c_str());
         child->tick();
-
         return Status::Running;
     }
     return Status::Success;
-}
-
-std::string Repeater::node_name() {
-    return "Repeater";
 }
 
 } // bt

@@ -1,7 +1,6 @@
 
 #include <gtest/gtest.h>
 #include "../src/treeinterp/BTFactory.h"
-#include "../src/bt/tactics/DemoTactic.h"
 
 TEST (BT, JsonEditor) {
     BTFactory dummyFactory = BTFactory::getFactory();
@@ -38,7 +37,7 @@ TEST(BT, BasicFactoryTest) {
 
     // loop recursively through nodes
     // we assume that there is only one child
-    while (!node->getChildren().empty()) {
+    while (! node->getChildren().empty()) {
         node = node->getChildren().at(0);
         trace += node->node_name() + "-";
     }

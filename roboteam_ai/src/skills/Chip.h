@@ -6,7 +6,6 @@
 #define ROBOTEAM_AI_CHIP_H
 
 #include "Kick.h"
-#include "roboteam_msgs/RobotCommand.h"
 
 namespace rtt {
 namespace ai {
@@ -14,10 +13,7 @@ namespace ai {
 class Chip : public Kick {
     public:
         explicit Chip(std::string name = "", bt::Blackboard::Ptr blackboard = nullptr);
-
         void sendKickCommand(double kickVel) override;
-
-
 };
 
 } // ai

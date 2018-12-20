@@ -2,14 +2,12 @@
 
 namespace bt {
 
-Decorator::~Decorator() { }
-
 void Decorator::addChild(Node::Ptr child) {
     this->child = child;
 }
 
 bool Decorator::HasNoChild() const {
-        return child == nullptr;
+    return child == nullptr;
 }
 
 void Decorator::terminate(Status s) {

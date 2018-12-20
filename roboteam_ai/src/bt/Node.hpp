@@ -22,18 +22,18 @@ class Node {
 
         std::string status_print(Status s) {
             switch (s) {
-            case Status::Waiting:
-                return " Status : Waiting";
-            case Status::Success:
-                return " Status : Success";
-            case Status::Failure:
-                return " Status : Failure";
-            case Status::Running:
-                return " Status : Running";
+                case Status::Waiting:
+                    return " Status : Waiting";
+                case Status::Success:
+                    return " Status : Success";
+                case Status::Failure:
+                    return " Status : Failure";
+                case Status::Running:
+                    return " Status : Running";
             }
         }
 
-        virtual ~Node();
+        virtual ~Node() = default;
 
         Node();
 
@@ -42,7 +42,6 @@ class Node {
         virtual Status update() = 0;
 
         Status NodeUpdate();
-
         void NodeInitialize();
 
         void NodeTerminate(Status s);
@@ -76,8 +75,6 @@ class Node {
         bt::Blackboard::Ptr globalBB;
 
         virtual std::string node_name();
-
-        static std::string status_desc;
 
         void setProperties(bt::Blackboard::Ptr blackboard);
 

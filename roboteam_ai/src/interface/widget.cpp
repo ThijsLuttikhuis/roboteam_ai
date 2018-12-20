@@ -12,7 +12,8 @@ namespace rtt {
 namespace ai {
 namespace interface {
 
-Visualizer::Visualizer(QWidget *parent) : QWidget(parent) { }
+Visualizer::Visualizer(QWidget* parent)
+        :QWidget(parent) { }
 
 /// The update loop of the field widget. Invoked by widget->update();
 void Visualizer::paintEvent(QPaintEvent* event) {
@@ -31,10 +32,16 @@ void Visualizer::paintEvent(QPaintEvent* event) {
         bool plotCurve = true;
         drawBezier(painter, 1, Drawer::getBezierCurve(plotCurve), Qt::white);
 
-        if (showPath) drawDataPoints(painter, Drawer::getGoToPosLuThPoints(selectedRobot.id));
 
-    } else {
-        painter.drawText(24,24, "Waiting for incoming World State");
+        if (showPath) {
+            for (auto robot : selectedRobots) {
+                drawDataPoints(painter, Drawer::getGoToPosLuThPoints(robot.id));
+            }
+        }
+
+    }
+    else {
+        painter.drawText(24, 24, "Waiting for incoming World State");
     }
 }
 
@@ -42,19 +49,19 @@ void Visualizer::paintEvent(QPaintEvent* event) {
 void Visualizer::calculateFieldSizeFactor() {
     roboteam_msgs::GeometryFieldSize field = rtt::ai::Field::get_field();
     fieldmargin = static_cast<int>(c::WINDOW_FIELD_MARGIN + field.boundary_width);
-    float widthFactor = this->size().width() / field.field_length - (2 * fieldmargin);
-    float heightFactor = this->size().height() / field.field_width - (2 * fieldmargin);
+    float widthFactor = this->size().width()/field.field_length - (2*fieldmargin);
+    float heightFactor = this->size().height()/field.field_width - (2*fieldmargin);
     factor = std::min(widthFactor, heightFactor);
 }
 
 /// draws background of the field
-void Visualizer::drawBackground(QPainter & painter) {
+void Visualizer::drawBackground(QPainter &painter) {
     painter.setBrush(c::FIELD_COLOR);
-    painter.drawRect(0,0, this->size().width(), this->size().height());
+    painter.drawRect(0, 0, this->size().width(), this->size().height());
 }
 
 // draws the field lines
-void Visualizer::drawFieldLines(QPainter & painter) {
+void Visualizer::drawFieldLines(QPainter &painter) {
     painter.setPen(c::FIELD_LINE_COLOR);
     painter.setBrush(Qt::transparent);
     // draw lines
@@ -73,7 +80,7 @@ void Visualizer::drawFieldLines(QPainter & painter) {
 }
 
 // draw the ball on the screen
-void Visualizer::drawBall(QPainter & painter) {
+void Visualizer::drawBall(QPainter &painter) {
     rtt::Vector2 ballPosition = toScreenPosition(rtt::ai::World::get_world().ball.pos);
     QPointF qballPosition(ballPosition.x, ballPosition.y);
     painter.setBrush(c::BALL_COLOR); // fill
@@ -82,7 +89,7 @@ void Visualizer::drawBall(QPainter & painter) {
 }
 
 // draw the robots
-void Visualizer::drawRobots(QPainter & painter) {
+void Visualizer::drawRobots(QPainter &painter) {
 
     // draw us
     for (roboteam_msgs::WorldRobot robot : rtt::ai::World::get_world().us) {
@@ -97,22 +104,26 @@ void Visualizer::drawRobots(QPainter & painter) {
 
 // convert field coordinates to screen coordinates
 rtt::Vector2 Visualizer::toScreenPosition(rtt::Vector2 fieldPos) {
-    return {(fieldPos.x * factor) + static_cast<float>(this->size().width()/2 + fieldmargin),
-            (fieldPos.y * factor * -1) + static_cast<float>(this->size().height()/2 + fieldmargin)};
+    return {(fieldPos.x*factor) + static_cast<float>(this->size().width()/2 + fieldmargin),
+            (fieldPos.y*factor*- 1) + static_cast<float>(this->size().height()/2 + fieldmargin)};
 }
 
 // draw a single robot
-void Visualizer::drawRobot(QPainter & painter, roboteam_msgs::WorldRobot robot, bool ourTeam) {
+void Visualizer::drawRobot(QPainter &painter, roboteam_msgs::WorldRobot robot, bool ourTeam) {
     Vector2 robotpos = toScreenPosition(robot.pos);
     QPointF qrobotPosition(robotpos.x, robotpos.y);
     QColor robotColor = ourTeam ? c::ROBOT_US_COLOR : c::ROBOT_THEM_COLOR;
 
     if (showAllPaths) {
-        drawDataPoints(painter, Drawer::getGoToPosLuThPoints(robot.id), 2, Qt::gray);
+        std::vector<rtt::Vector2> gtpltPoints;
+        for (auto pair : Drawer::getGoToPosLuThPoints(robot.id)) {
+            gtpltPoints.push_back(pair.first);
+        }
+        drawDataPoints(painter, gtpltPoints, 2, Qt::gray);
     }
 
     if (showAngles) {
-        Vector2 angle = toScreenPosition({robot.pos.x + cos(robot.angle) / 3, robot.pos.y + sin(robot.angle) / 3});
+        Vector2 angle = toScreenPosition({robot.pos.x + cos(robot.angle)/3, robot.pos.y + sin(robot.angle)/3});
         QPen pen;
         pen.setWidth(4);
         pen.setBrush(robotColor);
@@ -133,28 +144,27 @@ void Visualizer::drawRobot(QPainter & painter, roboteam_msgs::WorldRobot robot, 
     int ypos = robotpos.y;
     if (showTactics && ourTeam) {
         painter.setPen(c::TEXT_COLOR);
-        painter.drawText(robotpos.x, ypos+=20, QString::fromStdString(getTacticNameForRobot(robot)));
+        painter.drawText(robotpos.x, ypos += 20, QString::fromStdString(getTacticNameForRobot(robot)));
     }
 
     if (showRoles && ourTeam) {
         painter.setPen(c::TEXT_COLOR);
-        painter.drawText(robotpos.x, ypos+=20, QString::fromStdString(getRoleNameForRobot(robot)));
+        painter.drawText(robotpos.x, ypos += 20, QString::fromStdString(getRoleNameForRobot(robot)));
     }
 
     // draw the robots
-    QColor color = (robot.id == selectedRobot.id && ourTeam) ? c::SELECTED_ROBOT_COLOR : robotColor;
+    QColor color = (robotIsSelected(robot) && ourTeam) ? c::SELECTED_ROBOT_COLOR : robotColor;
     painter.setBrush(color);
     painter.setPen(Qt::transparent);
     painter.drawEllipse(qrobotPosition, c::ROBOT_DRAWING_SIZE, c::ROBOT_DRAWING_SIZE);
 
     // draw the id in it
     painter.setPen(Qt::black);
-    painter.drawText(robotpos.x-3, robotpos.y+5, QString::fromStdString(std::to_string(robot.id)));
+    painter.drawText(robotpos.x - 3, robotpos.y + 5, QString::fromStdString(std::to_string(robot.id)));
 }
 
-
 // Handle mousePressEvents
-void Visualizer::mousePressEvent(QMouseEvent *event) {
+void Visualizer::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         Vector2 pos;
         pos.x = event->pos().x();
@@ -162,13 +172,13 @@ void Visualizer::mousePressEvent(QMouseEvent *event) {
 
         for (roboteam_msgs::WorldRobot robot : rtt::ai::World::get_world().us) {
             if (pos.dist(toScreenPosition(robot.pos)) < 10) {
-                this->selectedRobot = robot;
+                this->toggleSelectedRobot(robot.id);
             }
         }
     }
 }
 
-void Visualizer::drawTacticColorForRobot(QPainter & painter, roboteam_msgs::WorldRobot robot) {
+void Visualizer::drawTacticColorForRobot(QPainter &painter, roboteam_msgs::WorldRobot robot) {
     Vector2 robotpos = toScreenPosition(robot.pos);
     QPointF qrobotPosition(robotpos.x, robotpos.y);
     std::string tacticName = getTacticNameForRobot(robot);
@@ -182,9 +192,9 @@ void Visualizer::drawTacticColorForRobot(QPainter & painter, roboteam_msgs::Worl
         }
     }
 
-    if (!tacticExists) {
+    if (! tacticExists) {
         QColor newColor = c::TACTIC_COLORS[tacticCount];
-        tacticCount = (tacticCount + 1) % sizeof(c::TACTIC_COLORS);
+        tacticCount = (tacticCount + 1)%sizeof(c::TACTIC_COLORS);
         tacticColors.push_back({tacticName, newColor});
         c = newColor;
     }
@@ -194,13 +204,24 @@ void Visualizer::drawTacticColorForRobot(QPainter & painter, roboteam_msgs::Worl
     painter.drawEllipse(qrobotPosition, c::TACTIC_COLOR_DRAWING_SIZE, c::TACTIC_COLOR_DRAWING_SIZE);
 }
 
-void Visualizer::drawDataPoints(QPainter & painter, std::vector<Vector2> points, int pointSize, QColor color) {
-    if (!points.empty()) {
+void Visualizer::drawDataPoints(QPainter &painter, std::vector<Vector2> points, int pointSize, QColor color) {
+    if (! points.empty()) {
         painter.setPen(Qt::NoPen);
         painter.setBrush(color);
 
         for (Vector2 point : points) {
             Vector2 pointOnScreen = toScreenPosition(point);
+            painter.drawEllipse(pointOnScreen.x, pointOnScreen.y, pointSize, pointSize);
+        }
+    }
+}
+void Visualizer::drawDataPoints(QPainter &painter, std::vector<std::pair<Vector2, QColor>> points, int pointSize) {
+    if (! points.empty()) {
+        painter.setPen(Qt::NoPen);
+
+        for (auto point : points) {
+            painter.setBrush(point.second);
+            Vector2 pointOnScreen = toScreenPosition(point.first);
             painter.drawEllipse(pointOnScreen.x, pointOnScreen.y, pointSize, pointSize);
         }
     }
@@ -264,27 +285,12 @@ void Visualizer::drawBezier(QPainter & painter, int pointSize, std::vector<Vecto
 }
 
 std::string Visualizer::getTacticNameForRobot(roboteam_msgs::WorldRobot robot) {
-    for (auto &robotowner : robotDealer::RobotDealer::getClaimedRobots()) {
-        std::set<std::pair<int, std::string>> robots = robotowner.second;
-        for (auto &ownedRobot : robots) {
-            if (ownedRobot.first == robot.id) {
-                return robotowner.first;
-            }
-        }
-    }
-    return "";
+   return robotDealer::RobotDealer::getTacticNameForId(robot.id);
 }
 
 std::string Visualizer::getRoleNameForRobot(roboteam_msgs::WorldRobot robot) {
-    for (auto &robotowner : robotDealer::RobotDealer::getClaimedRobots()) {
-        std::set<std::pair<int, std::string>> robots = robotowner.second;
-        for (auto &ownedRobot : robots) {
-            if (ownedRobot.first == robot.id) {
-                return ownedRobot.second;
-            }
-        }
-    }
-    return "";
+    return robotDealer::RobotDealer::getRoleNameForId(robot.id);
+
 }
 
 void Visualizer::setShowRoles(bool showRoles) {
@@ -299,8 +305,8 @@ void Visualizer::setShowTacticColors(bool showTacticColors) {
     Visualizer::showTacticColors = showTacticColors;
 }
 
-const roboteam_msgs::WorldRobot &Visualizer::getSelectedRobot() const {
-    return selectedRobot;
+const std::vector<roboteam_msgs::WorldRobot> &Visualizer::getSelectedRobots() const {
+    return selectedRobots;
 }
 
 void Visualizer::setShowAngles(bool showAngles) {
@@ -319,12 +325,32 @@ void Visualizer::setShowPathAll(bool showPaths) {
     Visualizer::showAllPaths = showPaths;
 }
 
-void Visualizer::selectRobot(int robotId) {
-    for (roboteam_msgs::WorldRobot robot : rtt::ai::World::get_world().us) {
-        if (robot.id == robotId) {
-            this->selectedRobot = robot;
+void Visualizer::toggleSelectedRobot(int robotId) {
+    bool robotWasAlreadySelected = false;
+
+    for (int i = 0; i < selectedRobots.size(); i++) {
+        if (selectedRobots.at(i).id == robotId) {
+            robotWasAlreadySelected = true;
+            this->selectedRobots.erase(selectedRobots.begin() + i);
         }
     }
+
+    if (!robotWasAlreadySelected) {
+        for (roboteam_msgs::WorldRobot robot : rtt::ai::World::get_world().us) {
+            if (static_cast<int>(robot.id) == robotId) {
+                robotWasAlreadySelected = false;
+                this->selectedRobots.push_back(robot);
+            }
+        }
+    }
+
+}
+
+bool Visualizer::robotIsSelected(roboteam_msgs::WorldRobot robotToCheck) {
+    for (auto robot : selectedRobots) {
+        if (robot.id == robotToCheck.id) return true;
+    }
+    return false;
 }
 
 } // interface

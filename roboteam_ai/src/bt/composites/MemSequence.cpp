@@ -1,4 +1,11 @@
-#include <iostream>
+/*
+ *   The MemSequence composite ticks each child node in order, and remembers what child it previously tried to tick.
+ *   If a child fails or runs, the sequence returns the same status.
+ *   In the next tick, it will try to run each child in order again.
+ *   If all children succeeds, only then does the sequence succeed.
+ */
+
+
 #include "MemSequence.hpp"
 
 namespace bt {
@@ -16,7 +23,6 @@ bt::Node::Status MemSequence::update() {
     while (index < children.size()) {
         auto &child = children.at(index);
 
-        Node::append_status("[MemSequence: executing child of type %s]", child->node_name().c_str());
         auto status = child->tick();
 
         // If the child fails, or keeps running, do the same.
@@ -28,10 +34,6 @@ bt::Node::Status MemSequence::update() {
     }
 
     return Status::Success;
-}
-
-std::string MemSequence::node_name() {
-    return "MemSequence";
 }
 
 } // bt

@@ -70,7 +70,7 @@ bt::Node::Ptr TreeInterpreter::buildNode(json nodeJSON, json tree, bt::Blackboar
         node = tempNode;
     };
 
-    if(! jsonReader.checkIfKeyExists("children", nodeJSON)) {
+    if (! jsonReader.checkIfKeyExists("children", nodeJSON)) {
         ROS_ERROR("Well this is a non leaf node without children and this should never happen. Like really never");
     }
 
@@ -107,8 +107,8 @@ bt::Leaf::Ptr TreeInterpreter::makeLeafNode(json jsonLeaf) {
         auto node = tacticSwitch(jsonLeaf["name"], properties);
         node->addChild(tactics.find(jsonLeaf["name"])->second);
         return node;
-
     }
+
     bt::Blackboard::Ptr properties = propertyParser.parse(jsonLeaf);
 
     rtt::ai::Skill::Ptr skill = Switches::leafSwitch(jsonLeaf["title"], properties);

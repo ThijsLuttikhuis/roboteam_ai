@@ -5,7 +5,6 @@
 #include "utilities/StrategyManager.h"
 #include "treeinterp/BTFactory.h"
 #include "interface/mainWindow.h"
-#include "roboteam_ai/src/interface/widget.h"
 #include <QApplication>
 
 namespace df = rtt::ai::dangerfinder;
@@ -32,7 +31,7 @@ void runBehaviourTrees() {
     factory.init();
 
     // Start running this tree first
-    ros::Rate rate(50);
+    ros::Rate rate(rtt::ai::constants::tickRate); //50 Hz
 
     factory.setCurrentTree("randomStrategyBezier");
 
@@ -48,13 +47,11 @@ void runBehaviourTrees() {
         ai::Field::set_field(geometryMsg.field);
         ai::Referee::setRefereeData(refereeMsg);
 
-        if (! ai::World::didReceiveFirstWorld) continue;
-
         if (df::DangerFinder::instance().hasCalculated()) {
             df::DangerData dangerData = df::DangerFinder::instance().getMostRecentData();
         }
 
-        // for refereedata:
+        // for referee_data:
         if (! ai::World::didReceiveFirstWorld) {
             ROS_ERROR("No first world");
             ros::Duration(0.2).sleep();
@@ -66,9 +63,15 @@ void runBehaviourTrees() {
         // std::string strategyName = strategyManager.getCurrentStrategyName();
         // strategy = factory.getTree(strategyName);
 
-        strategy = factory.getTree(factory.getCurrentTree());
+        strategy = factory.getTree(BTFactory::getCurrentTree());
 
+//
+//        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
         Status status = strategy->tick();
+//        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+//
+//        std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+//        std::cout << "Tick took:  " << time_span.count()*1000 << " ms." << std::endl;
 
         switch (status) {
             case Status::Running:
@@ -77,7 +80,6 @@ void runBehaviourTrees() {
                 ROS_INFO_STREAM("Status returned: Success");
                 ROS_INFO_STREAM(" === TREE CHANGE === ");
 
-                factory.setCurrentTree("victoryDanceStrategy");
                 break;
 
             case Status::Failure:
@@ -101,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Init ROS node in main thread
     ros::init(argc, argv, "StrategyNode");
 
-    // start the ros loop in seperate thread
+    // start the ros loop in separate thread
     std::thread behaviourTreeThread = std::thread(&runBehaviourTrees);
 
     // initialize the interface

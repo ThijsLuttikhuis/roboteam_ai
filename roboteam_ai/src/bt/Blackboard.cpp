@@ -3,12 +3,7 @@
 #include <string>
 #include <memory>
 #include "roboteam_msgs/StringEntry.h"
-#include "roboteam_msgs/BoolEntry.h"
-#include "roboteam_msgs/Int32Entry.h"
-#include "roboteam_msgs/Float64Entry.h"
-#include "roboteam_msgs/Blackboard.h"
 #include "Blackboard.hpp"
-
 
 namespace bt {
 
@@ -33,7 +28,7 @@ void Blackboard::setInt(std::string key, int value) {
 
 int Blackboard::getInt(std::string key) {
     if (ints.find(key) == ints.end()) {
-        ints[key] = -1;
+        ints[key] = - 1;
     }
     return ints[key];
 }

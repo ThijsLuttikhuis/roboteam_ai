@@ -11,25 +11,15 @@ namespace rtt {
 namespace ai {
 
 class Pass : public Skill {
-
     private:
-
-        using Status = bt::Node::Status;
-        roboteam_msgs::WorldRobot robot;
         bool defensive;
-        int getRobotToPass();
         int robotToPass;
         bool sendPassCommand();
-
+        bool getReadyToPass();
     public:
-
         explicit Pass(string name, bt::Blackboard::Ptr blackboard);
-        std::string node_name() override;
-
-        void initialize() override;
-        Status update() override;
-        void terminate(Status s) override;
-
+        void onInitialize() override;
+        Status onUpdate() override;
 };
 } // ai
 } // rtt

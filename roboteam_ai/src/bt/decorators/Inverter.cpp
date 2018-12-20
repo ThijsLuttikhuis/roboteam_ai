@@ -1,9 +1,13 @@
+/*
+ *   The Inverter decorator inverts the child node's status, i.e. failure becomes success and success becomes failure.
+ *   If the child runs, the Inverter returns the status that it is running too.
+ */
+
 #include "Inverter.hpp"
 
 namespace bt {
 
 Node::Status Inverter::update() {
-    Node::append_status("[Inverter: executing child of type %s]", child->node_name().c_str());
     auto s = child->tick();
 
     if (s == Status::Success) {
@@ -16,8 +20,4 @@ Node::Status Inverter::update() {
     return s;
 }
 
-std::string Inverter::node_name() {
-    return "Inverter";
-}
-
-}
+} // bt

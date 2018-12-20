@@ -12,13 +12,17 @@ namespace interface {
 std::map<int, std::vector<Vector2>> Drawer::GoToPosLuThPoints;
 std::pair<arma::Mat<int>, arma::Mat<float>> Drawer::voronoiDiagram;
 std::vector<Vector2> Drawer::bezierCurve;
+std::map<int, std::vector<std::pair<Vector2, QColor>>> Drawer::GoToPosLuThPoints;
+std::mutex Drawer::mutex;
 
 // Setters
-void Drawer::setGoToPosLuThPoints(int id, std::vector<rtt::Vector2> points) {
-    std::pair<int, std::vector<rtt::Vector2>> pair{id, std::move(points)};
+void Drawer::setGoToPosLuThPoints(int id, std::vector<std::pair<rtt::Vector2, QColor>> points) {
+    std::lock_guard<std::mutex> lock(mutex);
 
-     GoToPosLuThPoints.erase(id);
-     Drawer::GoToPosLuThPoints.insert(pair);
+    std::pair<int, std::vector<std::pair<rtt::Vector2, QColor>>> pair{id, std::move(points)};
+
+    GoToPosLuThPoints.erase(id);
+    GoToPosLuThPoints.insert(pair);
 }
 
 void Drawer::setVoronoiDiagram(arma::Mat<int> voronoiSegments, arma::Mat<float> voronoiNodes) {
@@ -30,10 +34,11 @@ void Drawer::setBezierCurve(std::vector<Vector2> curvePoints) {
 }
 
 // Getters
-std::vector<Vector2> Drawer::getGoToPosLuThPoints(int id) {
+std::vector<std::pair<Vector2, QColor>> Drawer::getGoToPosLuThPoints(int id) {
+    std::lock_guard<std::mutex> lock(mutex);
 
     if (GoToPosLuThPoints.find(id) != GoToPosLuThPoints.end()) {
-        return GoToPosLuThPoints[id];
+        return GoToPosLuThPoints.at(id);
     }
     return {};
 }
@@ -55,5 +60,7 @@ std::vector<Vector2> Drawer::getBezierCurve(bool plot) {
 }
 
 }
-}
-}
+
+} // interface
+} // ai
+} // rtt

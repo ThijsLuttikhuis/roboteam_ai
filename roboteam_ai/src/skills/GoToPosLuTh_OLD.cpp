@@ -4,9 +4,6 @@
 
 #include "GoToPosLuTh_OLD.h"
 #include <random>  //random numbers..
-#include <cstdlib>
-#include <time.h>
-#include "../interface/drawer.h"
 
 namespace rtt {
 namespace ai {
@@ -16,31 +13,8 @@ GoToPosLuTh_OLD::GoToPosLuTh_OLD(string name, bt::Blackboard::Ptr blackboard)
         :Skill(name, blackboard) {
 }
 
-/// Return name of GoToPosLuTh
-std::string GoToPosLuTh_OLD::node_name() {
-    return "GoToPosLuTh_OLD";
-}
-
 /// Called when the Skill is Initialized
-void GoToPosLuTh_OLD::initialize() {
-
-    if (properties->hasString("ROLE")) {
-        std::string roleName = properties->getString("ROLE");
-        robot.id = (unsigned int) dealer::findRobotForRole(roleName);
-        if (World::getRobotForId(robot.id, true)) {
-            robot = World::getRobotForId(robot.id, true).get();
-        }
-        else {
-            ROS_ERROR("GoToPosLuTh_OLD Initialize -> robot does not exist in world");
-            return;
-        }
-    }
-    else {
-        ROS_ERROR("GoToPosLuTh_OLD Initialize -> ROLE WAITING!!");
-        return;
-    }
-//  ____________________________________________________________________________________________________________________
-
+void GoToPosLuTh_OLD::onInitialize() {
     drawInterface = properties->getBool("drawInterface");
     goToBall = properties->getBool("goToBall");
     random = properties->getBool("random");
@@ -55,16 +29,8 @@ void GoToPosLuTh_OLD::initialize() {
 }
 
 /// Called when the Skill is Updated
-GoToPosLuTh_OLD::Status GoToPosLuTh_OLD::update() {
+GoToPosLuTh_OLD::Status GoToPosLuTh_OLD::onUpdate() {
     displayData.clear();
-
-    if (World::getRobotForId(robot.id, true)) {
-        robot = World::getRobotForId(robot.id, true).get();
-    }
-    else {
-        ROS_ERROR("GoToPosLuTh_OLD Update -> robot does not exist in world");
-    }
-//  ____________________________________________________________________________________________________________________
 
     if (goToBall) {
         auto ball = World::getBall();
@@ -74,21 +40,11 @@ GoToPosLuTh_OLD::Status GoToPosLuTh_OLD::update() {
         const roboteam_msgs::GeometryFieldSize &field = Field::get_field();
         const double &length = field.field_length;
         const double &width = field.field_width;
-        time_t timer;
-        struct tm y2k = {0};
-        double seconds;
-        y2k.tm_hour = 0;
-        y2k.tm_min = 0;
-        y2k.tm_sec = 0;
-        y2k.tm_year = 100;
-        y2k.tm_mon = 0;
-        y2k.tm_mday = 1;
-        seconds = difftime(timer, mktime(&y2k));
         int randomX = std::rand();
         int randomY = std::rand();
 
         random = false;
-        targetPos = {randomX*2.32830644e-10*length*2 - length*0.5, randomY*2.32830644e-10*width*2 - width*0.5};
+        targetPos = {randomX*4.65661288e-10*length - length*0.5, randomY*4.65661288 - 10*width - width*0.5};
     }
 
     // See if the progress is a failure
@@ -107,19 +63,21 @@ GoToPosLuTh_OLD::Status GoToPosLuTh_OLD::update() {
     switch (currentProgress) {
 
         // Return the progression in terms of status
-    case ON_THE_WAY:return Status::Running;
-    case DONE: return Status::Success;
-    case FAIL: return Status::Failure;
+        case ON_THE_WAY:
+            return Status::Running;
+        case DONE:
+            return Status::Success;
+        case FAIL:
+            return Status::Failure;
     }
 
     return Status::Failure;
 }
 
 /// Called when the Skill is Terminated
-void GoToPosLuTh_OLD::terminate(Status s) {
-
+void GoToPosLuTh_OLD::onTerminate(Status s) {
     roboteam_msgs::RobotCommand command;
-    command.id = robot.id;
+    command.id = robot->id;
     command.use_angle = 0;
     command.w = 0;
 
@@ -145,7 +103,7 @@ void GoToPosLuTh_OLD::sendMoveCommand() {
 
     numRobot me;
     roboteam_msgs::RobotCommand command;
-    command.id = robot.id;
+    command.id = robot->id;
     calculateNumericDirection(me, command);
 
     ros::Time end = ros::Time::now();
@@ -153,15 +111,13 @@ void GoToPosLuTh_OLD::sendMoveCommand() {
     std::cout << "calculation: " << timeTaken*1000 << " ms" << std::endl;
 
     displayData.insert(displayData.end(), me.posData.begin(), me.posData.end());
-    interface::Drawer::setGoToPosLuThPoints(robot.id, displayData);
-
     publishRobotCommand(command);
 }
 
 GoToPosLuTh_OLD::Progression GoToPosLuTh_OLD::checkProgression() {
 
-    double dx = targetPos.x - robot.pos.x;
-    double dy = targetPos.y - robot.pos.y;
+    double dx = targetPos.x - robot->pos.x;
+    double dy = targetPos.y - robot->pos.y;
     Vector2 deltaPos = {dx, dy};
 
     double maxMargin = 0.3;                        // max offset or something.
@@ -172,11 +128,11 @@ GoToPosLuTh_OLD::Progression GoToPosLuTh_OLD::checkProgression() {
 
 bool GoToPosLuTh_OLD::calculateNumericDirection(numRobot &me, roboteam_msgs::RobotCommand &command) {
 
-    me.id = robot.id;
-    me.pos = robot.pos;
-    me.vel = robot.vel;
+    me.id = robot->id;
+    me.pos = robot->pos;
+    me.vel = robot->vel;
     me.targetPos = targetPos;
-    me.angle = robot.angle;
+    me.angle = robot->angle;
     int startIndex = 0;
     if (me.vel.length() > 10.0) return false;
 
@@ -196,8 +152,7 @@ bool GoToPosLuTh_OLD::calculateNumericDirection(numRobot &me, roboteam_msgs::Rob
 #endif
         command.w = angularVel;
 
-
-        me.pos = robot.pos;
+        me.pos = robot->pos;
         auto world = World::get_world();
         Vector2 closestBot = getClosestRobotPos(world, me);
         if (me.isCollision(closestBot)) {
@@ -209,8 +164,8 @@ bool GoToPosLuTh_OLD::calculateNumericDirection(numRobot &me, roboteam_msgs::Rob
             command.x_vel = static_cast<float>(me.velData[2].x);
             command.y_vel = static_cast<float>(me.velData[2].y);
         }
-        command.x_vel *= -1;
-        command.y_vel *= -1;
+        command.x_vel *= - 1;
+        command.y_vel *= - 1;
         return true;
     }
 //  ____________________________________________________________________________________________________________________
@@ -223,7 +178,7 @@ bool GoToPosLuTh_OLD::calculateNumericDirection(numRobot &me, roboteam_msgs::Rob
     if (me.posData.empty()) {
         return true;
     }
-    else if (me.posData.size() > maxDTimesX) {
+    else if (static_cast<int>(me.posData.size()) > maxDTimesX) {
         dTimesX = maxDTimesX;
     }
     else {
@@ -232,8 +187,8 @@ bool GoToPosLuTh_OLD::calculateNumericDirection(numRobot &me, roboteam_msgs::Rob
     auto absXVel = static_cast<float>(me.velData[dTimesX].x);
     auto absYVel = static_cast<float>(me.velData[dTimesX].y);
 
-    command.x_vel = -absXVel;
-    command.y_vel = -absYVel;
+    command.x_vel = - absXVel;
+    command.y_vel = - absYVel;
     return false;
 }
 
@@ -322,7 +277,7 @@ bool GoToPosLuTh_OLD::avoidObject(numRobot &me, int &startIndex, bool firstTry) 
                 displayData.push_back(target);
 
                 if (tracePath(me, startIndex, target, true)) {
-                    if (me.posData.size() > startIndex + 2) {
+                    if (static_cast<int>(me.posData.size()) > startIndex + 2) {
                         allPosData.push_back(me.posData);
                         allVelData.push_back(me.velData);
 
@@ -340,7 +295,7 @@ bool GoToPosLuTh_OLD::avoidObject(numRobot &me, int &startIndex, bool firstTry) 
 
                 if (tracePath(me, startIndex, target, true)) {
 
-                    if (me.posData.size() > startIndex + 2) {
+                    if (static_cast<int>(me.posData.size()) > startIndex + 2) {
                         allPosData.push_back(me.posData);
                         allVelData.push_back(me.velData);
                     }
@@ -353,7 +308,7 @@ bool GoToPosLuTh_OLD::avoidObject(numRobot &me, int &startIndex, bool firstTry) 
             double distance = 0;
             int bestIndex = 0;
             auto world = World::get_world();
-            for (int i = 0; i < allPosData.size() - 1; i ++) {
+            for (int i = 0; i < static_cast<int>(allPosData.size()) - 1; i ++) {
                 auto &posData = allPosData[i];
                 Vector2 closestBot = getClosestRobotPos(world, me);
                 //double distToTarget = (me.targetPos - posData.back()).length();
@@ -366,7 +321,7 @@ bool GoToPosLuTh_OLD::avoidObject(numRobot &me, int &startIndex, bool firstTry) 
             me.posData = allPosData[bestIndex];
             me.velData = allVelData[bestIndex];
 
-            if (me.posData.size() < startIndex + 2) {
+            if (static_cast<int>(me.posData.size()) < startIndex + 2) {
                 me.posData = oldPosData;
                 me.velData = oldVelData;
                 return false;
@@ -392,7 +347,7 @@ Vector2 GoToPosLuTh_OLD::getClosestRobotPos(const roboteam_msgs::World &world, n
     Vector2 closestPos;
     double distance = 99999999;
     for (auto &bot : world.us) {
-        if (bot.id != me.id) {
+        if (static_cast<int>(bot.id) != me.id) {
             Vector2 botPos = {bot.pos.x + bot.vel.x*me.t, bot.pos.y + bot.vel.y*me.t};
             double deltaPos = (me.pos - botPos).length();
             if (deltaPos < distance) {

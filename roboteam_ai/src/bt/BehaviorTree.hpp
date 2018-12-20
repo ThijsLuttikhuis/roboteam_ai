@@ -5,21 +5,18 @@
 namespace bt {
 
 class BehaviorTree : public Node {
-        FRIEND_TEST(BehaviorTreeTest,it_sets_blackboards);
+        FRIEND_TEST(BehaviorTreeTest, it_sets_blackboards);
     public:
 
         using Ptr = std::shared_ptr<BehaviorTree>;
 
         BehaviorTree();
 
-        BehaviorTree(const Node::Ptr &rootNode);
+        explicit BehaviorTree(const Node::Ptr &rootNode);
 
-        BehaviorTree(const Blackboard::Ptr &shared);
+        explicit BehaviorTree(const Blackboard::Ptr &shared);
 
         std::string node_name() override;
-
-
-        ~BehaviorTree();
 
         Status update() override;
 
@@ -35,7 +32,6 @@ class BehaviorTree : public Node {
 
         Node::Ptr root = nullptr;
         Blackboard::Ptr globalBB = nullptr;
-
 
 };
 
