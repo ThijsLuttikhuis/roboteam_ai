@@ -125,7 +125,7 @@ set(TACTIC_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/bt/tactics/RandomTactic.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/bt/tactics/DefaultTactic.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/bt/tactics/DefaultTactic.h
-        )
+        roboteam_ai/src/bt/tactics/FormationTactic.cpp roboteam_ai/src/bt/tactics/FormationTactic.cpp roboteam_ai/src/bt/tactics/FormationTactic.h)
 
 set(IO_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/io/IOManager.h

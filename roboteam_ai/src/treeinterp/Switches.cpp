@@ -62,6 +62,7 @@ std::vector<std::string> Switches::tacticJsonFileNames =
          "SimpleTactic",
          "haltTactic",
          "SimpleDefendTactic",
+         "goToFormationTactic",
          "Attactic"};
 
 std::vector<std::string> Switches::strategyJsonFileNames =
@@ -72,6 +73,7 @@ std::vector<std::string> Switches::strategyJsonFileNames =
          "SimpleStrategy",
          "haltStrategy",
          "SimpleDefendStrategy",
+         "goToFormationStrategy",
          "AttackStrategy"};
 
 std::vector<std::string> Switches::keeperJsonFiles =
@@ -176,7 +178,7 @@ bt::Node::Ptr Switches::leafSwitch(std::string name, bt::Blackboard::Ptr propert
         node = std::make_shared<rtt::ai::Attack>(name, properties);
     }
     else {
-        ROS_ERROR("ERROR: Leaf not found!! using GoToPos..");
+        ROS_ERROR("ERROR: Leaf %s not found!! using GoToPos..", name.c_str());
         node = std::make_shared<rtt::ai::GoToPos>(name, properties);
     }
 
@@ -206,6 +208,17 @@ bt::Node::Ptr Switches::tacticSwitch(std::string name, bt::Blackboard::Ptr prope
                     {"halt5", robotType::random},
                     {"halt6", robotType::random},
                     {"halt7", robotType::random}
+            }
+            },
+            {"goToFormationTactic", {
+                    {"formation1", robotType::random},
+                    {"formation2", robotType::random},
+                    {"formation3", robotType::random},
+                    {"formation4", robotType::random},
+                    {"formation5", robotType::random},
+                    {"formation6", robotType::random},
+                    {"formation7", robotType::random},
+                    {"formation8", robotType::random}
             }
             },
             {"GetBallTestTactic", {

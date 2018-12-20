@@ -1,0 +1,379 @@
+{
+  "data": {
+    "trees": [
+      {
+        "nodes": {
+          "w7mfrgyc0ags6zg": {
+            "id": "w7mfrgyc0ags6zg",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "pxkuox7c5qnn3em",
+              "3234i274tqrc2kwh"
+            ]
+          },
+          "tyqx6rkj34ycnb": {
+            "id": "tyqx6rkj34ycnb",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation6"
+            },
+            "isRole": false
+          },
+          "ko43yshtm7drwzw5": {
+            "id": "ko43yshtm7drwzw5",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "srezmd3xflrp1s4d",
+              "jqwwv0abmbnzg2c"
+            ]
+          },
+          "e3wxvwwmn71m9osa": {
+            "id": "e3wxvwwmn71m9osa",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation1"
+            },
+            "isRole": false
+          },
+          "srezmd3xflrp1s4d": {
+            "id": "srezmd3xflrp1s4d",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation5"
+            },
+            "isRole": false
+          },
+          "hmml56dpnsubof4pi": {
+            "id": "hmml56dpnsubof4pi",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "e3wxvwwmn71m9osa",
+              "qy7acmjni2wajwym"
+            ]
+          },
+          "fggawbacq81z8": {
+            "id": "fggawbacq81z8",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "5mybe6134ewou8b"
+            ]
+          },
+          "c07zrc7p16r4bro": {
+            "children": [
+              "schgsctdj3hq6etj"
+            ],
+            "id": "c07zrc7p16r4bro",
+            "name": "formation7",
+            "title": "Role"
+          },
+          "jh9194x6vlo5py": {
+            "id": "jh9194x6vlo5py",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "hmml56dpnsubof4pi"
+            ]
+          },
+          "hq1lysdjcsuj7dfo": {
+            "id": "hq1lysdjcsuj7dfo",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation2"
+            },
+            "isRole": false
+          },
+          "wxhkwidelgzog": {
+            "id": "wxhkwidelgzog",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation3"
+            },
+            "isRole": false
+          },
+          "jceay1nur45zdpui": {
+            "id": "jceay1nur45zdpui",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation8"
+            },
+            "isRole": false
+          },
+          "upmuc68lmq2ez": {
+            "id": "upmuc68lmq2ez",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "bbc65a7logq43p",
+              "jceay1nur45zdpui"
+            ]
+          },
+          "udm9euo8dxs21qd": {
+            "children": [
+              "jh9194x6vlo5py"
+            ],
+            "id": "udm9euo8dxs21qd",
+            "name": "formation1",
+            "title": "Role"
+          },
+          "3234i274tqrc2kwh": {
+            "id": "3234i274tqrc2kwh",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation4"
+            },
+            "isRole": false
+          },
+          "135v2wytqaky01j": {
+            "id": "135v2wytqaky01j",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "hq1lysdjcsuj7dfo",
+              "xyp3tk7up0wom6v3"
+            ]
+          },
+          "doxoalbh1sr2ndjl": {
+            "id": "doxoalbh1sr2ndjl",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "0bgeqss99gzkf48f",
+              "0l7u4q99fo99x8u"
+            ]
+          },
+          "ztwm16h1tdmhdlej4": {
+            "children": [
+              "03d5mxmkbrppe"
+            ],
+            "id": "ztwm16h1tdmhdlej4",
+            "name": "formation2",
+            "title": "Role"
+          },
+          "hirt3ed5pndo10y7": {
+            "id": "hirt3ed5pndo10y7",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "426foq9c5y76gpj60"
+            ]
+          },
+          "0bgeqss99gzkf48f": {
+            "id": "0bgeqss99gzkf48f",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation7"
+            },
+            "isRole": false
+          },
+          "pxkuox7c5qnn3em": {
+            "id": "pxkuox7c5qnn3em",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation4"
+            },
+            "isRole": false
+          },
+          "qy7acmjni2wajwym": {
+            "id": "qy7acmjni2wajwym",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation1"
+            },
+            "isRole": false
+          },
+          "bbc65a7logq43p": {
+            "id": "bbc65a7logq43p",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation8"
+            },
+            "isRole": false
+          },
+          "426foq9c5y76gpj60": {
+            "id": "426foq9c5y76gpj60",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "s77chrfsn80acltp",
+              "tyqx6rkj34ycnb"
+            ]
+          },
+          "xyp3tk7up0wom6v3": {
+            "id": "xyp3tk7up0wom6v3",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation2"
+            },
+            "isRole": false
+          },
+          "vpmbr4omk49fv6cpa": {
+            "children": [
+              "hirt3ed5pndo10y7"
+            ],
+            "id": "vpmbr4omk49fv6cpa",
+            "name": "formation6",
+            "title": "Role"
+          },
+          "03d5mxmkbrppe": {
+            "id": "03d5mxmkbrppe",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "135v2wytqaky01j"
+            ]
+          },
+          "jqwwv0abmbnzg2c": {
+            "id": "jqwwv0abmbnzg2c",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation5"
+            },
+            "isRole": false
+          },
+          "0l7u4q99fo99x8u": {
+            "id": "0l7u4q99fo99x8u",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation7"
+            },
+            "isRole": false
+          },
+          "6efx009nrhu0j": {
+            "children": [
+              "jq62t8j0tx84i"
+            ],
+            "id": "6efx009nrhu0j",
+            "name": "formation4",
+            "title": "Role"
+          },
+          "qvn6db3v61tgu7mz": {
+            "children": [
+              "udm9euo8dxs21qd",
+              "ztwm16h1tdmhdlej4",
+              "cb2yy8hytyk20gg",
+              "6efx009nrhu0j",
+              "thpxonvqr3ab986",
+              "vpmbr4omk49fv6cpa",
+              "c07zrc7p16r4bro",
+              "ecrf3fry93mqe"
+            ],
+            "id": "qvn6db3v61tgu7mz",
+            "title": "ParallelSequence"
+          },
+          "s77chrfsn80acltp": {
+            "id": "s77chrfsn80acltp",
+            "title": "GoToPos",
+            "properties": {
+              "Position": "{0,0}",
+              "goToBall": "false",
+              "random": "false",
+              "ROLE": "formation6"
+            },
+            "isRole": false
+          },
+          "ecrf3fry93mqe": {
+            "children": [
+              "9vbi2dzhf3e7g4d"
+            ],
+            "id": "ecrf3fry93mqe",
+            "name": "formation8",
+            "title": "Role"
+          },
+          "9vbi2dzhf3e7g4d": {
+            "id": "9vbi2dzhf3e7g4d",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "upmuc68lmq2ez"
+            ]
+          },
+          "5mybe6134ewou8b": {
+            "id": "5mybe6134ewou8b",
+            "title": "Sequence",
+            "isRole": false,
+            "children": [
+              "wxhkwidelgzog",
+              "ojt58ht8gbil7"
+            ]
+          },
+          "jq62t8j0tx84i": {
+            "id": "jq62t8j0tx84i",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "w7mfrgyc0ags6zg"
+            ]
+          },
+          "ojt58ht8gbil7": {
+            "id": "ojt58ht8gbil7",
+            "title": "Kick",
+            "properties": {
+              "ROLE": "formation3"
+            },
+            "isRole": false
+          },
+          "cb2yy8hytyk20gg": {
+            "children": [
+              "fggawbacq81z8"
+            ],
+            "id": "cb2yy8hytyk20gg",
+            "name": "formation3",
+            "title": "Role"
+          },
+          "thpxonvqr3ab986": {
+            "children": [
+              "ryijvigg49jz9xg8"
+            ],
+            "id": "thpxonvqr3ab986",
+            "name": "formation5",
+            "title": "Role"
+          },
+          "schgsctdj3hq6etj": {
+            "id": "schgsctdj3hq6etj",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "doxoalbh1sr2ndjl"
+            ]
+          },
+          "ryijvigg49jz9xg8": {
+            "id": "ryijvigg49jz9xg8",
+            "title": "UntilSuccess",
+            "isRole": false,
+            "children": [
+              "ko43yshtm7drwzw5"
+            ]
+          }
+        },
+        "root": "qvn6db3v61tgu7mz",
+        "title": "goToFormationTactic"
+      }
+    ]
+  },
+  "name": "goToFormationTactic"
+}

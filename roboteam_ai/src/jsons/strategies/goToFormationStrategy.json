@@ -1,0 +1,25 @@
+{
+  "data": {
+    "trees": [
+      {
+        "nodes": {
+          "i2hmckxekqen73k": {
+            "children": [
+              "cggtz1mqjdy9mk"
+            ],
+            "id": "i2hmckxekqen73k",
+            "title": "UntilSuccess"
+          },
+          "cggtz1mqjdy9mk": {
+            "id": "cggtz1mqjdy9mk",
+            "name": "goToFormationTactic",
+            "title": "Tactic"
+          }
+        },
+        "root": "i2hmckxekqen73k",
+        "title": "goToFormationStrategy"
+      }
+    ]
+  },
+  "name": "goToFormationStrategy"
+}
