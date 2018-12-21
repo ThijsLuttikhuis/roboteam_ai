@@ -51,7 +51,7 @@ bt::Node::Status DefendOnRobot::onUpdate() {
 //        }
 
         std::cout << "Robot:" << robot->id << "TargetPos:" << targetPos << std::endl;
-        goToPos.goToPos(robot, targetPos, GoToType::luTh);
+        goToPos.goToPos(robot, targetPos, GoToType::basic);
 
         return Status::Running;
     } else {

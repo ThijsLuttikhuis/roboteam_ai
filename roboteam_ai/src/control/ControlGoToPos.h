@@ -38,7 +38,7 @@ namespace rtt{
                 using RobotPtr = std::shared_ptr<roboteam_msgs::WorldRobot>;
                 using Vector2 = rtt::Vector2;
                 using Command = roboteam_msgs::RobotCommand;
-                rtt::ai::io::IOManager ioManager;
+                io::IOManager ioManager;
 
                 void goToPosBallControl(RobotPtr robot, Vector2 &targetPos);
 
@@ -61,6 +61,7 @@ namespace rtt{
                 //ControlGoToPosForce gtpForce;
 
                 void goToPosBasic(RobotPtr robot, Vector2 &targetPos);
+                Controller pidBasic;
                 //ControlGoToPosBasic gtpBasic;
                 //ControlGoToPosBasic basic;
 
@@ -90,7 +91,9 @@ namespace rtt{
 
                 void goToPos(RobotPtr robot, Vector2 &position, GoToType goToType);
 
+
             };
+
 
         } // control
     } // ai

@@ -95,9 +95,9 @@ namespace rtt {
 //        ROS_ERROR("Target position is not correct GoToPos");
 //        return;
 //    }
-                static Controller pidBasic(3, 0, 1.5);
+
                 Vector2 error = targetPos - robot->pos;
-                float dist = error.length();
+                double dist = error.length();
                 static bool far = true;
                 if (dist > rtt::ai::constants::ROBOT_RADIUS and !far) {
                     pidBasic.setD(1.5);
@@ -119,7 +119,7 @@ namespace rtt {
                 roboteam_msgs::RobotCommand command;
                 command.id = robot->id;
                 command.use_angle = 1;
-                command.w = 0.0;
+                command.w = 0;
                 command.x_vel = static_cast<float>(delta.x);
                 command.y_vel = static_cast<float>(delta.y);
                 publishRobotCommand(command);
@@ -161,6 +161,7 @@ namespace rtt {
 
             ControlGoToPos::ControlGoToPos() {
                 rtt::ai::io::IOManager temp(false, true);
+                pidBasic.setPID(3, 0, 1.5);
                 ioManager = temp;
             }
 
