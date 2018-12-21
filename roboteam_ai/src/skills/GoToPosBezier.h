@@ -17,9 +17,9 @@ class GoToPosBezier : public Skill {
         using status = bt::Node::Status;
 
     public:
-        Status update() override;
+        Status onUpdate() override;
 
-        void initialize() override;
+        void onInitialize() override;
         void terminate(status s) override;
         explicit GoToPosBezier(string name, bt::Blackboard::Ptr blackboard);
 
@@ -32,7 +32,7 @@ class GoToPosBezier : public Skill {
         std::chrono::system_clock::time_point now;
         std::chrono::duration<double> timeDif;
         float totalTime;
-        control::ControlUtils::PIDvariables pidVarsInitial, pidVarsXPos, pidVarsYPos;
+        control::Controller pidBezier;
         PathFinder pathFinder;
         clock_t pidStartTime, pidEndTime;
 

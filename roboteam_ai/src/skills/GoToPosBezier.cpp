@@ -10,13 +10,13 @@ namespace ai {
 // TODO: Make if GrSim, if real robot statement
 
 /// Init GoToPosBezier
-void GoToPosBezier::initialize() {
+void GoToPosBezier::onInitialize() {
 
     if (properties->hasString("ROLE")) {
         std::string roleName = properties->getString("ROLE");
         robotID = (unsigned int) dealer::findRobotForRole(roleName);
         if (World::getRobotForId(robotID, true)) {
-            robot = World::getRobotForId(robotID, true).get();
+            robot = *World::getRobotForId(robotID, true).get();
         }
         else {
             ROS_ERROR("GoToPos Initialize -> robot does not exist in world");
@@ -54,32 +54,17 @@ void GoToPosBezier::initialize() {
 
     updateCurveData(0, false);
     /// Set PID values
-    pidVarsInitial.kP = 3.0;
-    pidVarsInitial.kI = 0.1;
-    pidVarsInitial.kD = 0.1;
-    pidVarsInitial.prev_err = 0;
-
-    pidVarsXPos.kP = pidVarsInitial.kP;
-    pidVarsXPos.kI = pidVarsInitial.kI;
-    pidVarsXPos.kD = pidVarsInitial.kD;
-    pidVarsXPos.prev_err = pidVarsInitial.prev_err;
-    pidVarsXPos.I = 0;
-
-    pidVarsYPos.kP = pidVarsInitial.kP;
-    pidVarsYPos.kI = pidVarsInitial.kI;
-    pidVarsYPos.kD = pidVarsInitial.kD;
-    pidVarsYPos.prev_err = pidVarsInitial.prev_err;
-    pidVarsYPos.I = 0;
+    pidBezier.setPID(3.0, 0.1, 0.1);
 
     pidStartTime = clock();
 }
 
 /// Get an update on the skill
-bt::Node::Status GoToPosBezier::update() {
+bt::Node::Status GoToPosBezier::onUpdate() {
 
-    if (World::getRobotForId(robotID, true)) {
-        robot = World::getRobotForId(robotID, true).get();
-    }
+//    if (World::getRobotForId(robotID, true)) {
+//        robot = World::getRobotForId(robotID, true).get();
+//    }
 
     if (goToBall) {
         auto ball = World::getBall();
@@ -102,16 +87,18 @@ bt::Node::Status GoToPosBezier::update() {
     Vector2 posError = curve.positions[currentPoint] - robot.pos;
     //std::cout << "posError >> x: " << posError.x << "  y: " << posError.y << std::endl;
 
-    pidEndTime = clock();
-    pidVarsXPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
-    pidVarsYPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
-    pidStartTime = clock();
+//    pidEndTime = clock();
+//    pidVarsXPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
+//    pidVarsYPos.timeDiff = ((float) (pidEndTime - pidStartTime))/CLOCKS_PER_SEC;
+//    pidStartTime = clock();
 
-    float xOutputPID = control::ControlUtils::PIDcontroller((float) posError.x, pidVarsXPos);
-    float yOutputPID = control::ControlUtils::PIDcontroller((float) posError.y, pidVarsYPos);
+    Vector2 OutputPID = pidBezier.controlPIR2(posError, robot.vel);
 
-    curve.velocities[currentPoint].x += xOutputPID;
-    curve.velocities[currentPoint].y += yOutputPID;
+//    float xOutputPID = control::ControlUtils::PIDcontroller((float) posError.x, pidVarsXPos);
+//    float yOutputPID = control::ControlUtils::PIDcontroller((float) posError.y, pidVarsYPos);
+
+    curve.velocities[currentPoint].x += OutputPID.x;
+    curve.velocities[currentPoint].y += OutputPID.y;
 
     double xVelocity =
             curve.velocities[currentPoint].x*cos(robot.angle) + curve.velocities[currentPoint].y*sin(robot.angle);

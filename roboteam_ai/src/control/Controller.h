@@ -10,7 +10,7 @@
 
 namespace control {
 
-    class Controller {
+class Controller {
     private:
         double kP;
         double kI;
@@ -61,7 +61,7 @@ namespace control {
 
         //To fill in your own measured velocity
         Vector2 controlPIR2(Vector2 err, Vector2 rate);
-    };
+};
 
 }
 

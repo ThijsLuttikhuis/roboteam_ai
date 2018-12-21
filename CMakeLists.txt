@@ -73,7 +73,6 @@ set(DANGER_FINDER_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/dangerfinder/modules/OrientationModule.h
         )
 
-
 set(BT_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/bt/composites/MemSelector.hpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/bt/composites/MemSelector.cpp
@@ -229,7 +228,6 @@ set(CONTROL_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/controlGoToPos/ControlGoToPosLuTh.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/controlGoToPos/ControlGoToPosBallControl.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/controlGoToPos/ControlGoToPosBallControl.cpp
-
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/ControlGoToPos.h
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/ControlGoToPos.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/control/ControlRotate.h
@@ -277,10 +275,6 @@ set(CONDITION_TESTS
         ${PROJECT_SOURCE_DIR}/roboteam_ai/test/ConditionTests/IHaveBallTest.cpp
         ${PROJECT_SOURCE_DIR}/roboteam_ai/test/ConditionTests/IsInZoneTest.cpp
         )
-
-set(CONTROL_SOURCES
-        roboteam_ai/src/control/ControlUtils.cpp
-        roboteam_ai/src/control/ControlUtils.h )
 
 set(INTERFACE_SOURCES
         ${PROJECT_SOURCE_DIR}/roboteam_ai/src/interface/mainWindow.cpp

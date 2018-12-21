@@ -9,7 +9,7 @@ namespace ai {
 namespace interface {
 
 // declare static variables
-std::map<int, std::vector<Vector2>> Drawer::GoToPosLuThPoints;
+//std::map<int, std::vector<Vector2>> Drawer::GoToPosLuThPoints;
 std::pair<arma::Mat<int>, arma::Mat<float>> Drawer::voronoiDiagram;
 std::vector<Vector2> Drawer::bezierCurve;
 std::map<int, std::vector<std::pair<Vector2, QColor>>> Drawer::GoToPosLuThPoints;
@@ -57,8 +57,6 @@ std::vector<Vector2> Drawer::getBezierCurve(bool plot) {
         return bezierCurve;
     }
     return {};
-}
-
 }
 
 } // interface
